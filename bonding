@@ -1,0 +1,294 @@
+```html
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+<meta charset="UTF-8">
+<title>Chemistry Bonding Laboratory</title>
+
+<style>
+
+body{
+font-family:Arial;
+text-align:center;
+background:#ffffff;
+margin:20px;
+}
+
+h1{
+margin-bottom:5px;
+}
+
+#workspace{
+border:2px solid black;
+background:#f7f7f7;
+margin:auto;
+}
+
+.panel{
+margin-top:15px;
+}
+
+.atom{
+display:inline-block;
+padding:8px;
+margin:5px;
+background:#e8f2ff;
+border:1px solid black;
+cursor:grab;
+font-weight:bold;
+}
+
+select{
+font-size:16px;
+padding:5px;
+}
+
+button{
+padding:6px 12px;
+margin:5px;
+font-size:16px;
+}
+
+</style>
+
+</head>
+
+<body>
+
+<h1>Interactive Chemistry Bonding Lab</h1>
+
+<p>Drag atoms into the workspace and observe shells and bonding structures.</p>
+
+<div class="panel">
+
+<div class="atom" draggable="true" data-element="H">H</div>
+<div class="atom" draggable="true" data-element="O">O</div>
+<div class="atom" draggable="true" data-element="C">C</div>
+<div class="atom" draggable="true" data-element="N">N</div>
+
+</div>
+
+<canvas id="workspace" width="900" height="450"></canvas>
+
+<div class="panel">
+
+<select id="molecule">
+<option value="">Show Molecule Lewis Structure</option>
+<option value="H2O">H₂O</option>
+<option value="CO2">CO₂</option>
+<option value="NH3">NH₃</option>
+</select>
+
+<button onclick="drawLewisStructure()">Draw Structure</button>
+
+</div>
+
+<script>
+
+const canvas=document.getElementById("workspace")
+const ctx=canvas.getContext("2d")
+
+let atoms=[]
+
+const elementData={
+
+H:{shells:[1]},
+C:{shells:[2,4]},
+N:{shells:[2,5]},
+O:{shells:[2,6]}
+
+}
+
+/* DRAW BOHR ATOM */
+
+function drawAtom(x,y,element){
+
+let shells=elementData[element].shells
+
+ctx.beginPath()
+ctx.arc(x,y,12,0,Math.PI*2)
+ctx.fillStyle="#ffd27f"
+ctx.fill()
+
+ctx.fillStyle="black"
+ctx.fillText(element,x-4,y+4)
+
+for(let i=0;i<shells.length;i++){
+
+let r=30+(i*20)
+
+ctx.beginPath()
+ctx.arc(x,y,r,0,Math.PI*2)
+ctx.stroke()
+
+let electrons=shells[i]
+
+for(let e=0;e<electrons;e++){
+
+let angle=(2*Math.PI/electrons)*e
+
+let ex=x+r*Math.cos(angle)
+let ey=y+r*Math.sin(angle)
+
+ctx.beginPath()
+ctx.arc(ex,ey,4,0,Math.PI*2)
+ctx.fill()
+
+}
+
+}
+
+}
+
+/* REDRAW WORKSPACE */
+
+function redraw(){
+
+ctx.clearRect(0,0,canvas.width,canvas.height)
+
+atoms.forEach(a=>{
+drawAtom(a.x,a.y,a.element)
+})
+
+}
+
+/* DRAG AND DROP */
+
+document.querySelectorAll(".atom").forEach(atom=>{
+
+atom.addEventListener("dragstart",e=>{
+e.dataTransfer.setData("element",atom.dataset.element)
+})
+
+})
+
+canvas.addEventListener("dragover",e=>{
+e.preventDefault()
+})
+
+canvas.addEventListener("drop",e=>{
+
+let element=e.dataTransfer.getData("element")
+
+atoms.push({
+element:element,
+x:e.offsetX,
+y:e.offsetY
+})
+
+redraw()
+
+})
+
+/* LEWIS STRUCTURES */
+
+function drawLewisStructure(){
+
+ctx.clearRect(0,0,canvas.width,canvas.height)
+
+let mol=document.getElementById("molecule").value
+
+ctx.font="22px Arial"
+
+if(mol==="H2O"){
+
+ctx.fillText("H₂O Lewis Structure",380,50)
+
+drawLewisAtom("O",450,200,6)
+
+drawLewisAtom("H",350,200,1)
+drawLewisAtom("H",550,200,1)
+
+drawBond(380,200,420,200)
+drawBond(480,200,520,200)
+
+}
+
+if(mol==="CO2"){
+
+ctx.fillText("CO₂ Lewis Structure",380,50)
+
+drawLewisAtom("C",450,200,4)
+
+drawLewisAtom("O",350,200,6)
+drawLewisAtom("O",550,200,6)
+
+drawDoubleBond(380,200,420,200)
+drawDoubleBond(480,200,520,200)
+
+}
+
+if(mol==="NH3"){
+
+ctx.fillText("NH₃ Lewis Structure",380,50)
+
+drawLewisAtom("N",450,200,5)
+
+drawLewisAtom("H",350,250,1)
+drawLewisAtom("H",550,250,1)
+drawLewisAtom("H",450,100,1)
+
+drawBond(430,210,370,240)
+drawBond(470,210,530,240)
+drawBond(450,180,450,120)
+
+}
+
+}
+
+/* LEWIS ATOM */
+
+function drawLewisAtom(symbol,x,y,valence){
+
+ctx.fillText(symbol,x,y)
+
+let angles=[0,90,180,270,45,135,225,315]
+
+for(let i=0;i<valence;i++){
+
+let rad=angles[i]*(Math.PI/180)
+
+let ex=x+20*Math.cos(rad)
+let ey=y+20*Math.sin(rad)
+
+ctx.beginPath()
+ctx.arc(ex,ey,3,0,Math.PI*2)
+ctx.fill()
+
+}
+
+}
+
+/* BONDS */
+
+function drawBond(x1,y1,x2,y2){
+
+ctx.beginPath()
+ctx.moveTo(x1,y1)
+ctx.lineTo(x2,y2)
+ctx.stroke()
+
+}
+
+function drawDoubleBond(x1,y1,x2,y2){
+
+ctx.beginPath()
+ctx.moveTo(x1,y1-3)
+ctx.lineTo(x2,y2-3)
+ctx.stroke()
+
+ctx.beginPath()
+ctx.moveTo(x1,y1+3)
+ctx.lineTo(x2,y2+3)
+ctx.stroke()
+
+}
+
+</script>
+
+</body>
+
+</html>
+```

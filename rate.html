@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Calcium Carbonate Reaction Simulation</title>
+<style>
+body{
+  font-family: Arial;
+  text-align:center;
+  background:white;
+  margin:20px;
+}
+.container{
+  display:flex;
+  justify-content:center;
+  align-items:flex-start;
+  gap:40px;
+}
+.flask-container{
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  position:relative;
+}
+canvas{
+  background:#f5f5f5;
+  border:2px solid black;
+  width:200px;
+  height:300px;
+}
+.scale-box{
+  width:120px;
+  height:42px;
+  border:2px solid black;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  margin-top:10px;
+  background:#fff;
+  font-weight:bold;
+}
+.info-box{
+  margin-bottom:5px;
+  font-size:14px;
+}
+table{
+  border-collapse:collapse;
+  width:380px;
+  font-size:14px;
+}
+th, td{
+  border:1px solid black;
+  padding:4px;
+  text-align:center;
+}
+.buttons{
+  margin-top:10px;
+  display:flex;
+  gap:10px;
+  justify-content:center;
+}
+h2{
+  margin-bottom:5px;
+}
+</style>
+</head>
+<body>
+
+<h1>Calcium Carbonate in HCl Simulation</h1>
+<p>Powder reacts faster than marble chips due to larger surface area. Both eventually produce <b>16 g</b> CO₂ in 24 minutes using the same HCl concentration.</p>
+
+<div class="container">
+
+<div class="flask-container">
+<h2>Powder Flask</h2>
+<div class="info-box">CaCO₃: 36.4 g | HCl: 7.28 M</div>
+<canvas id="powderFlask" width="200" height="300"></canvas>
+<div class="scale-box" id="powderScale">Mass: 36.4 g</div>
+</div>
+
+<div class="flask-container">
+<h2>Marble Chip Flask</h2>
+<div class="info-box">CaCO₃: 36.4 g | HCl: 7.28 M</div>
+<canvas id="marbleFlask" width="200" height="300"></canvas>
+<div class="scale-box" id="marbleScale">Mass: 36.4 g</div>
+</div>
+
+<div class="flask-container">
+<h2>Mass Loss Table</h2>
+<table id="massTable">
+<tr>
+  <th>Time (min)</th>
+  <th>Powder Mass (g)</th>
+  <th>Powder Mass Loss (g)</th>
+  <th>Marble Mass (g)</th>
+  <th>Marble Mass Loss (g)</th>
+</tr>
+</table>
+</div>
+
+</div>
+
+<div class="buttons">
+<button onclick="startSimulation()">Start</button>
+<button onclick="stopSimulation()">Stop</button>
+<button onclick="resetSimulation()">Restart</button>
+</div>
+
+<script>
+let powderCanvas = document.getElementById("powderFlask");
+let powderCtx = powderCanvas.getContext("2d");
+let marbleCanvas = document.getElementById("marbleFlask");
+let marbleCtx = marbleCanvas.getContext("2d");
+
+let powderParticles = [];
+let marbleParticles = [];
+let powderBubbles = [];
+let marbleBubbles = [];
+
+let time = 0;
+let timer;
+let initialMass = 36.4;
+let massPowder = initialMass;
+let massMarble = initialMass;
+let table = document.getElementById("massTable");
+let powderScale = document.getElementById("powderScale");
+let marbleScale = document.getElementById("marbleScale");
+
+// Mass loss arrays for 24 min (every 2 min)
+let powderLoss = [0,3,6,9,11,13,14.5,15.5,16,16,16,16,16]; 
+let marbleLoss = [0,1,3,5,6,7,8,9,10,11,12,14,16];
+
+function initParticles() {
+  powderParticles = [];
+  marbleParticles = [];
+  powderBubbles = [];
+  marbleBubbles = [];
+  // 16 energetic white particles
+  for(let i=0;i<16;i++){
+    powderParticles.push({x:Math.random()*140+30,y:Math.random()*180+60,vx:(Math.random()-0.5)*3,vy:(Math.random()-0.5)*3,r:5});
+    marbleParticles.push({x:Math.random()*140+30,y:Math.random()*180+60,vx:(Math.random()-0.5)*1.5,vy:(Math.random()-0.5)*1.5,r:7});
+  }
+}
+
+// Spawn bubble at liquid surface
+function spawnBubble(list,x=100){
+  list.push({x:x, y:230+Math.random()*10, vx:(Math.random()-0.5)*0.5, vy:-(0.8+Math.random()*0.8), r:Math.random()*3+2});
+}
+
+// Draw flask
+function drawFlask(ctx, particles, bubbles){
+  ctx.clearRect(0,0,200,300);
+  ctx.save();
+  // Glass
+  ctx.strokeStyle = "#000";
+  ctx.lineWidth = 2;
+  ctx.beginPath();
+  ctx.moveTo(80,8); ctx.quadraticCurveTo(70,30,58,58);
+  ctx.quadraticCurveTo(42,130,40,240);
+  ctx.lineTo(160,240);
+  ctx.quadraticCurveTo(158,130,142,58);
+  ctx.quadraticCurveTo(130,30,120,8);
+  ctx.closePath();
+  ctx.stroke();
+  // Highlight
+  ctx.beginPath(); ctx.moveTo(87,12); ctx.quadraticCurveTo(82,30,72,58); ctx.lineTo(60,220);
+  ctx.strokeStyle = "rgba(0,0,0,0.08)"; ctx.lineWidth = 1; ctx.stroke();
+  // Liquid
+  ctx.fillStyle="#f5deb3"; ctx.beginPath();
+  ctx.moveTo(45,235); ctx.quadraticCurveTo(100,215,155,235); ctx.lineTo(150,240); ctx.lineTo(50,240); ctx.closePath(); ctx.fill();
+  // Cotton
+  ctx.fillStyle="#fff"; ctx.beginPath(); ctx.ellipse(100,6,30,8,0,0,Math.PI*2); ctx.fill(); ctx.strokeStyle="#ddd"; ctx.stroke();
+  ctx.strokeStyle="#eee"; ctx.lineWidth=1;
+  for(let i=0;i<5;i++){ctx.beginPath();ctx.moveTo(85+i*3,2);ctx.lineTo(95+i*3,8);ctx.stroke();}
+  // Shadows
+  ctx.fillStyle="rgba(0,0,0,0.025)"; ctx.beginPath(); ctx.moveTo(50,235); ctx.quadraticCurveTo(100,245,150,235); ctx.lineTo(150,240); ctx.lineTo(50,240); ctx.closePath(); ctx.fill();
+  // Particles
+  particles.forEach(p=>{
+    p.x += p.vx; p.y += p.vy;
+    if(p.x<50){p.x=50;p.vx*=-1;}
+    if(p.x>150){p.x=150;p.vx*=-1;}
+    if(p.y<30){p.y=30;p.vy*=-1;}
+    if(p.y>235){p.y=235;p.vy*=-1;}
+    if(p.y<58 && (p.x<72 || p.x>128)){p.vx*=-1;p.vy*=-1;}
+    ctx.beginPath(); ctx.arc(p.x,p.y,p.r,0,Math.PI*2); ctx.fillStyle="#fff"; ctx.fill(); ctx.strokeStyle="rgba(0,0,0,0.03)"; ctx.stroke();
+  });
+  // Bubbles
+  for(let i=bubbles.length-1;i>=0;i--){
+    let b=bubbles[i]; b.x+=b.vx;b.y+=b.vy;
+    if(b.x<60){b.x=60;b.vx*=-1;} if(b.x>140){b.x=140;b.vx*=-1;}
+    if(b.y<58){if(b.x>82 && b.x<118){bubbles.splice(i,1); continue;}else{b.vy*=-1;b.y=58;}}
+    if(b.y>235){b.vy*=-0.6;b.y=235;}
+    ctx.beginPath(); ctx.arc(b.x,b.y,b.r,0,Math.PI*2); ctx.fillStyle="rgba(120,120,120,0.9)"; ctx.fill(); ctx.strokeStyle="rgba(200,200,200,0.6)"; ctx.stroke();
+  }
+  ctx.restore();
+}
+
+function updateSimulation(){
+  // Spawn bubbles proportional to reaction
+  if(Math.random()<0.25) spawnBubble(powderBubbles);
+  if(Math.random()<0.08) spawnBubble(marbleBubbles);
+  drawFlask(powderCtx,powderParticles,powderBubbles);
+  drawFlask(marbleCtx,marbleParticles,marbleBubbles);
+  // Mass updates every 2 min
+  if(time%2===0 && time/2<powderLoss.length){
+    let idx=time/2;
+    massPowder = initialMass - powderLoss[idx];
+    massMarble = initialMass - marbleLoss[idx];
+    // Update scale displays
+    powderScale.innerText = `Mass: ${massPowder.toFixed(1)} g`;
+    marbleScale.innerText = `Mass: ${massMarble.toFixed(1)} g`;
+    // Table
+    let row = table.insertRow(-1);
+    row.insertCell(0).innerText = time;
+    row.insertCell(1).innerText = massPowder.toFixed(1);
+    row.insertCell(2).innerText = powderLoss[idx].toFixed(1);
+    row.insertCell(3).innerText = massMarble.toFixed(1);
+    row.insertCell(4).innerText = marbleLoss[idx].toFixed(1);
+    // Convert 1 particle per 1 g lost to gray bubble
+    while(powderParticles.length > (16 - Math.round(powderLoss[idx]))) {
+      let removed = powderParticles.pop();
+      powderBubbles.push({x:removed.x, y:removed.y, vx:(Math.random()-0.5)*0.5, vy:-1.2, r:4});
+    }
+    while(marbleParticles.length > (16 - Math.round(marbleLoss[idx]))) {
+      let removed = marbleParticles.pop();
+      marbleBubbles.push({x:removed.x, y:removed.y, vx:(Math.random()-0.5)*0.5, vy:-1, r:5});
+    }
+  }
+  time++;
+}
+
+function startSimulation(){ if(!timer){ timer=setInterval(updateSimulation,1000); } }
+function stopSimulation(){ clearInterval(timer); timer=null; }
+function resetSimulation(){
+  stopSimulation();
+  time=0;
+  table.innerHTML=`<tr>
+  <th>Time (min)</th>
+  <th>Powder Mass (g)</th>
+  <th>Powder Mass Loss (g)</th>
+  <th>Marble Mass (g)</th>
+  <th>Marble Mass Loss (g)</th>
+  </tr>`;
+  massPowder=initialMass;
+  massMarble=initialMass;
+  powderScale.innerText=`Mass: ${massPowder.toFixed(1)} g`;
+  marbleScale.innerText=`Mass: ${massMarble.toFixed(1)} g`;
+  initParticles();
+  drawFlask(powderCtx,powderParticles,powderBubbles);
+  drawFlask(marbleCtx,marbleParticles,marbleBubbles);
+}
+
+initParticles();
+drawFlask(powderCtx,powderParticles,powderBubbles);
+drawFlask(marbleCtx,marbleParticles,marbleBubbles);
+</script>
+
+</body>
+</html>

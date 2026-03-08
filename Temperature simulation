@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Hot and Cold Particle Simulation</title>
+<style>
+  body { font-family: Arial, sans-serif; text-align: center; margin: 0; padding: 0; }
+  #container { display: flex; justify-content: center; gap: 20px; margin-top: 20px; }
+  canvas { border: 1px solid black; background: #f0f0f0; }
+  .label { font-weight: bold; margin-top: 5px; text-align: center; }
+  .instructions { margin: 10px auto; width: 90%; text-align: left; }
+  button { margin: 5px; padding: 10px 15px; font-size: 16px; cursor: pointer; }
+</style>
+</head>
+<body>
+
+<h2>Hot and Cold Particle Simulation</h2>
+
+<div class="instructions">
+  <p>Instructions:</p>
+  <ul>
+    <li>HOT box has red balls moving fast.</li>
+    <li>COLD box has blue balls moving slow.</li>
+    <li>When two red or two blue balls collide, they turn green.</li>
+    <li>Use Start to run, Stop to pause, and Restart to reset the balls.</li>
+    <li>Observe the timer as the simulation runs.</li>
+  </ul>
+</div>
+
+<div>
+  <button id="startBtn">Start</button>
+  <button id="stopBtn">Stop</button>
+  <button id="restartBtn">Restart</button>
+</div>
+
+<div id="container">
+  <div>
+    <canvas id="hotCanvas" width="400" height="400"></canvas>
+    <div class="label">HOT</div>
+  </div>
+  <div>
+    <canvas id="coldCanvas" width="400" height="400"></canvas>
+    <div class="label">COLD</div>
+  </div>
+</div>
+
+<div class="label">Timer: <span id="timer">0.0</span> s</div>
+
+<script>
+const hotCanvas = document.getElementById('hotCanvas');
+const coldCanvas = document.getElementById('coldCanvas');
+const hotCtx = hotCanvas.getContext('2d');
+const coldCtx = coldCanvas.getContext('2d');
+const timerDisplay = document.getElementById('timer');
+
+let timer = 0;
+let animationId;
+let intervalId;
+let running = false;
+
+class Ball {
+  constructor(x, y, color, speed) {
+    this.x = x;
+    this.y = y;
+    this.color = color;
+    this.speedX = (Math.random() - 0.5) * speed;
+    this.speedY = (Math.random() - 0.5) * speed;
+    this.radius = 10;
+  }
+  
+  move(canvas) {
+    this.x += this.speedX;
+    this.y += this.speedY;
+    if(this.x < this.radius || this.x > canvas.width - this.radius) this.speedX *= -1;
+    if(this.y < this.radius || this.y > canvas.height - this.radius) this.speedY *= -1;
+  }
+  
+  draw(ctx) {
+    ctx.beginPath();
+    ctx.arc(this.x, this.y, this.radius, 0, Math.PI*2);
+    ctx.fillStyle = this.color;
+    ctx.fill();
+    ctx.closePath();
+  }
+}
+
+function checkCollision(ballA, ballB) {
+  const dx = ballA.x - ballB.x;
+  const dy = ballA.y - ballB.y;
+  const distance = Math.sqrt(dx*dx + dy*dy);
+  if(distance < ballA.radius + ballB.radius) {
+    if(ballA.color === ballB.color && (ballA.color === 'red' || ballA.color === 'blue')) {
+      ballA.color = 'green';
+      ballB.color = 'green';
+    }
+    [ballA.speedX, ballB.speedX] = [ballB.speedX, ballA.speedX];
+    [ballA.speedY, ballB.speedY] = [ballB.speedY, ballA.speedY];
+  }
+}
+
+function createBalls() {
+  return {
+    hotBalls: Array.from({length: 10}, () => new Ball(Math.random()*380+10, Math.random()*380+10, 'red', 4)),
+    coldBalls: Array.from({length: 10}, () => new Ball(Math.random()*380+10, Math.random()*380+10, 'blue', 1))
+  };
+}
+
+let {hotBalls, coldBalls} = createBalls();
+
+function animate() {
+  if(!running) return;
+
+  hotCtx.clearRect(0,0,hotCanvas.width,hotCanvas.height);
+  coldCtx.clearRect(0,0,coldCanvas.width,coldCanvas.height);
+
+  for(let i = 0; i < hotBalls.length; i++) {
+    hotBalls[i].move(hotCanvas);
+    for(let j = i+1; j < hotBalls.length; j++) checkCollision(hotBalls[i], hotBalls[j]);
+    hotBalls[i].draw(hotCtx);
+  }
+
+  for(let i = 0; i < coldBalls.length; i++) {
+    coldBalls[i].move(coldCanvas);
+    for(let j = i+1; j < coldBalls.length; j++) checkCollision(coldBalls[i], coldBalls[j]);
+    coldBalls[i].draw(coldCtx);
+  }
+
+  animationId = requestAnimationFrame(animate);
+}
+
+document.getElementById('startBtn').onclick = () => {
+  if(!running) {
+    running = true;
+    animate();
+    intervalId = setInterval(() => { timer += 0.1; timerDisplay.textContent = timer.toFixed(1); }, 100);
+  }
+};
+
+document.getElementById('stopBtn').onclick = () => {
+  running = false;
+  cancelAnimationFrame(animationId);
+  clearInterval(intervalId);
+};
+
+document.getElementById('restartBtn').onclick = () => {
+  running = false;
+  cancelAnimationFrame(animationId);
+  clearInterval(intervalId);
+  timer = 0;
+  timerDisplay.textContent = timer.toFixed(1);
+  ({hotBalls, coldBalls} = createBalls());
+  hotCtx.clearRect(0,0,hotCanvas.width,hotCanvas.height);
+  coldCtx.clearRect(0,0,coldCanvas.width,coldCanvas.height);
+};
+</script>
+
+</body>
+</html>

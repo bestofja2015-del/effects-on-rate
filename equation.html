@@ -3,236 +3,323 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Chemical Equation Matching Game</title>
+<title>Balancing Equations Game</title>
+
 <style>
-    body {
-        font-family: Arial, sans-serif;
-        background-color: #f3f3f3;
-        margin: 0;
-        padding: 0;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-    }
-    h1 {
-        text-align: center;
-        margin-top: 20px;
-    }
-    #gameContainer {
-        width: 95%;
-        max-width: 1100px;
-        background-color: #fff;
-        padding: 20px;
-        border-radius: 10px;
-        box-shadow: 0 4px 8px rgba(0,0,0,0.2);
-        margin-top: 20px;
-    }
-    .equation {
-        display: flex;
-        justify-content: center;
-        flex-wrap: wrap;
-        margin: 20px 0;
-        gap: 5px;
-        font-size: 18px;
-    }
-    .dropzone {
-        min-width: 100px;
-        height: 50px;
-        border: 2px dashed #888;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        background-color: #f9f9f9;
-        border-radius: 5px;
-        cursor: pointer;
-    }
-    .dragItem {
-        display: inline-block;
-        padding: 10px 15px;
-        margin: 5px;
-        background-color: #6c9ef8;
-        color: #fff;
-        border-radius: 5px;
-        cursor: grab;
-        user-select: none;
-    }
-    .bottomContainer {
-        display: flex;
-        flex-wrap: wrap;
-        justify-content: center;
-        margin-top: 20px;
-        gap: 5px;
-    }
-    button {
-        margin: 5px;
-        padding: 10px 20px;
-        font-size: 16px;
-        border: none;
-        border-radius: 5px;
-        background-color: #28a745;
-        color: #fff;
-        cursor: pointer;
-    }
-    button:hover {
-        background-color: #218838;
-    }
-    #feedback {
-        margin-top: 10px;
-        font-size: 16px;
-        color: red;
-        height: 24px;
-        text-align: center;
-    }
+
+body{
+font-family:Arial;
+background:linear-gradient(135deg,#0f2027,#203a43,#2c5364);
+color:white;
+display:flex;
+flex-direction:column;
+align-items:center;
+margin:0;
+}
+
+h1{
+margin-top:15px;
+font-size:32px;
+text-shadow:0 0 10px cyan;
+}
+
+#instructions{
+max-width:1000px;
+background:#111;
+padding:15px;
+border-radius:10px;
+margin:10px;
+box-shadow:0 0 10px cyan;
+}
+
+#gameContainer{
+width:95%;
+max-width:1000px;
+background:#111;
+padding:20px;
+border-radius:12px;
+box-shadow:0 0 20px #00ffff;
+}
+
+#levelTitle{
+font-size:18px;
+margin-bottom:10px;
+text-align:center;
+}
+
+.equation{
+display:flex;
+justify-content:center;
+align-items:center;
+flex-wrap:nowrap;
+gap:8px;
+font-size:22px;
+margin:15px;
+}
+
+.dropzone{
+width:120px;
+height:50px;
+border:2px dashed white;
+display:flex;
+align-items:center;
+justify-content:center;
+border-radius:6px;
+background:#222;
+}
+
+.correct{
+background:#00ff66;
+color:black;
+}
+
+.incorrect{
+background:#ff0044;
+}
+
+.bottomContainer{
+display:flex;
+flex-wrap:wrap;
+justify-content:center;
+margin-top:20px;
+gap:6px;
+}
+
+.dragItem{
+padding:8px 12px;
+border-radius:6px;
+cursor:grab;
+color:white;
+font-weight:bold;
+background:linear-gradient(45deg,red,orange,yellow,green,cyan,blue,violet);
+background-size:400%;
+animation:rainbow 6s linear infinite;
+}
+
+@keyframes rainbow{
+0%{background-position:0%}
+100%{background-position:400%}
+}
+
+button{
+padding:10px 18px;
+margin:6px;
+border:none;
+border-radius:8px;
+font-weight:bold;
+cursor:pointer;
+color:white;
+background:linear-gradient(45deg,red,orange,yellow,green,cyan,blue,purple);
+background-size:400%;
+animation:rainbow 8s linear infinite;
+box-shadow:0 0 10px white;
+}
+
+button:hover{
+transform:scale(1.05);
+}
+
+#feedback{
+margin-top:10px;
+font-size:18px;
+text-align:center;
+height:25px;
+}
+
 </style>
 </head>
+
 <body>
 
-<h1>Chemical Equation Matching Game</h1>
+<h1>Balancing Equations Game</h1>
+
+<div id="instructions">
+<b>How to Play</b><br>
+Drag the correct chemical formulas from the coloured cards into the blank boxes to complete the chemical reaction.  
+Each equation must appear in one line as: Reactant + Reactant → Product + Product.  
+Click <b>Check Answer</b> to see if your placements are correct.  
+Correct answers turn green. Incorrect answers turn red.  
+You may drag another card to replace an incorrect answer.  
+Click <b>Skip Question</b> to move to the next reaction.  
+Click <b>Show Answer</b> to reveal the correct formulas.
+</div>
+
 <div id="gameContainer">
-    <div id="levelTitle">Level 1</div>
-    <div class="equation" id="equation"></div>
-    <div class="bottomContainer" id="bottomContainer"></div>
-    <div id="feedback"></div>
-    <button id="checkButton">Check Answer</button>
-    <button id="skipButton">Skip Question</button>
-    <button id="showClueButton">Show Clue</button>
-    <button id="showAnswerButton">Show Answer</button>
+
+<div id="levelTitle"></div>
+
+<div class="equation" id="equation"></div>
+
+<div class="bottomContainer" id="bottomContainer"></div>
+
+<div id="feedback"></div>
+
+<div style="text-align:center">
+<button id="checkButton">Check Answer</button>
+<button id="skipButton">Skip Question</button>
+<button id="showAnswerButton">Show Answer</button>
+</div>
+
 </div>
 
 <script>
-const elements = [
-    'H', 'He', 'Li', 'Be', 'B', 'C', 'N', 'O', 'F', 'Ne',
-    'Na', 'Mg', 'Al', 'Si', 'P', 'S', 'Cl', 'Ar', 'K', 'Ca',
-    'Sc', 'Ti', 'V', 'Cr', 'Mn', 'Fe', 'Co', 'Ni', 'Cu', 'Zn',
-    'Ga', 'Ge', 'As', 'Se', 'Br', 'Kr', 'Rb', 'Sr', 'Y', 'Zr'
-];
 
-const stateSymbols = ['(s)', '(l)', '(g)', '(aq)'];
+const levels=[
 
-const levels = [
-    { scenario: 'Hydrogen gas reacts with oxygen gas to form liquid water', correct: ['H2(g)', 'O2(g)', 'H2O(l)'], clue: 'Gas + Gas → Liquid' },
-    { scenario: 'Sodium metal reacts with chlorine gas to form solid sodium chloride', correct: ['Na(s)', 'Cl2(g)', 'NaCl(s)'], clue: 'Metal + Gas → Salt' },
-    { scenario: 'Potassium metal reacts with water to form aqueous potassium hydroxide and hydrogen gas', correct: ['K(s)', 'H2O(l)', 'KOH(aq)', 'H2(g)'], clue: 'Metal + Water → Base + Gas' },
-    { scenario: 'Aqueous hydrochloric acid reacts with aqueous sodium hydroxide to form aqueous sodium chloride and water', correct: ['HCl(aq)', 'NaOH(aq)', 'NaCl(aq)', 'H2O(l)'], clue: 'Acid + Base → Salt + Water' },
-    { scenario: 'Solid sulfur reacts with oxygen gas to form sulfur dioxide gas', correct: ['S(s)', 'O2(g)', 'SO2(g)'], clue: 'Nonmetal + Gas → Gas' },
-    { scenario: 'Liquid mercury reacts with oxygen gas to form solid mercury(II) oxide', correct: ['Hg(l)', 'O2(g)', 'HgO(s)'], clue: 'Liquid Metal + Gas → Solid' },
-    { scenario: 'Hydrogen peroxide decomposes to form water and oxygen gas', correct: ['H2O2(l)', 'H2O(l)', 'O2(g)'], clue: 'Compound → Liquid + Gas' },
-    { scenario: 'Magnesium metal reacts with aqueous hydrochloric acid to form aqueous magnesium chloride and hydrogen gas', correct: ['Mg(s)', 'HCl(aq)', 'MgCl2(aq)', 'H2(g)'], clue: 'Metal + Acid → Salt + Gas' },
-    { scenario: 'Calcium metal reacts with liquid water to form aqueous calcium hydroxide and hydrogen gas', correct: ['Ca(s)', 'H2O(l)', 'Ca(OH)2(aq)', 'H2(g)'], clue: 'Metal + Water → Base + Gas' },
-    { scenario: 'Solid carbon reacts with oxygen gas to form carbon dioxide gas', correct: ['C(s)', 'O2(g)', 'CO2(g)'], clue: 'Nonmetal + Gas → Gas' },
-    { scenario: 'Ammonia gas reacts with aqueous hydrochloric acid to form aqueous ammonium chloride', correct: ['NH3(aq)', 'HCl(aq)', 'NH4Cl(aq)'], clue: 'Gas + Acid → Salt' },
-    { scenario: 'Iron metal reacts with solid sulfur to form solid iron(II) sulfide', correct: ['Fe(s)', 'S(s)', 'FeS(s)'], clue: 'Metal + Nonmetal → Solid' },
-    { scenario: 'Aluminium metal reacts with oxygen gas to form solid aluminium oxide', correct: ['Al(s)', 'O2(g)', 'Al2O3(s)'], clue: 'Metal + Gas → Solid' },
-    { scenario: 'Zinc metal reacts with aqueous hydrochloric acid to form aqueous zinc chloride and hydrogen gas', correct: ['Zn(s)', 'HCl(aq)', 'ZnCl2(aq)', 'H2(g)'], clue: 'Metal + Acid → Salt + Gas' },
-    { scenario: 'Liquid bromine reacts with potassium metal to form aqueous potassium bromide', correct: ['Br2(l)', 'K(s)', 'KBr(aq)'], clue: 'Liquid + Metal → Salt' },
-    { scenario: 'Copper metal reacts with oxygen gas to form solid copper(II) oxide', correct: ['Cu(s)', 'O2(g)', 'CuO(s)'], clue: 'Metal + Gas → Solid' },
-    { scenario: 'Solid phosphorus reacts with oxygen gas to form solid diphosphorus pentoxide', correct: ['P(s)', 'O2(g)', 'P2O5(s)'], clue: 'Nonmetal + Gas → Solid' },
-    { scenario: 'Sodium metal reacts with water to form aqueous sodium hydroxide and hydrogen gas', correct: ['Na(s)', 'H2O(l)', 'NaOH(aq)', 'H2(g)'], clue: 'Metal + Water → Base + Gas' },
-    { scenario: 'Hydrogen gas reacts with chlorine gas to form aqueous hydrogen chloride', correct: ['H2(g)', 'Cl2(g)', 'HCl(aq)'], clue: 'Gas + Gas → Acid' },
-    { scenario: 'Solid carbon reacts with hydrogen gas to form methane gas', correct: ['C(s)', 'H2(g)', 'CH4(g)'], clue: 'Nonmetal + Gas → Gas' },
-    { scenario: 'Nitrogen gas reacts with hydrogen gas to form aqueous ammonia', correct: ['N2(g)', 'H2(g)', 'NH3(aq)'], clue: 'Gas + Gas → Gas' },
-    { scenario: 'Solid sulfur reacts with hydrogen gas to form aqueous hydrogen sulfide', correct: ['S(s)', 'H2(g)', 'H2S(aq)'], clue: 'Nonmetal + Gas → Acid' },
-    { scenario: 'Calcium metal reacts with aqueous hydrochloric acid to form aqueous calcium chloride and hydrogen gas', correct: ['Ca(s)', 'HCl(aq)', 'CaCl2(aq)', 'H2(g)'], clue: 'Metal + Acid → Salt + Gas' },
-    { scenario: 'Magnesium metal reacts with oxygen gas to form solid magnesium oxide', correct: ['Mg(s)', 'O2(g)', 'MgO(s)'], clue: 'Metal + Gas → Solid' },
-    { scenario: 'Aluminium metal reacts with aqueous hydrochloric acid to form aqueous aluminium chloride and hydrogen gas', correct: ['Al(s)', 'HCl(aq)', 'AlCl3(aq)', 'H2(g)'], clue: 'Metal + Acid → Salt + Gas' }
-];
+{scenario:"Hydrogen gas reacts with oxygen gas to form water",
+correct:["H2(g)","O2(g)","H2O(l)"]},
 
-let currentLevel = 0;
-let draggedItem = null;
+{scenario:"Sodium reacts with chlorine gas to form sodium chloride",
+correct:["Na(s)","Cl2(g)","NaCl(s)"]},
 
-function shuffle(array) { return array.sort(() => Math.random() - 0.5); }
+{scenario:"Magnesium reacts with oxygen to form magnesium oxide",
+correct:["Mg(s)","O2(g)","MgO(s)"]},
 
-function loadLevel(level) {
-    const levelData = levels[level];
-    document.getElementById('levelTitle').innerText = 'Level ' + (level + 1) + ': ' + levelData.scenario;
+{scenario:"Hydrochloric acid reacts with sodium hydroxide",
+correct:["HCl(aq)","NaOH(aq)","NaCl(aq)","H2O(l)"]},
 
-    // Create drop zones dynamically based on number of correct answers
-    const equationDiv = document.getElementById('equation');
-    equationDiv.innerHTML = '';
-    const numBoxes = levelData.correct.length;
-    for (let i = 0; i < numBoxes; i++) {
-        const dropzone = document.createElement('div');
-        dropzone.className = 'dropzone';
-        dropzone.dataset.position = i;
-        dropzone.innerText = '____';
-        dropzone.dataset.filled = 'false';
-        dropzone.addEventListener('dragover', e => e.preventDefault());
-        dropzone.addEventListener('drop', e => {
-            if (draggedItem) {
-                dropzone.innerText = draggedItem.innerText;
-                dropzone.dataset.filled = 'true';
-                draggedItem.remove();
-                draggedItem = null;
-            }
-        });
-        equationDiv.appendChild(dropzone);
-        if (i === 0 || i === Math.floor(numBoxes/2)) equationDiv.appendChild(document.createTextNode(' + '));
-        if (i === Math.floor(numBoxes/2) - 1) equationDiv.appendChild(document.createTextNode(' --> '));
-    }
+{scenario:"Potassium reacts with water",
+correct:["K(s)","H2O(l)","KOH(aq)","H2(g)"]}
 
-    // Populate draggable items (correct + distractors)
-    const bottomContainer = document.getElementById('bottomContainer');
-    bottomContainer.innerHTML = '';
-    let bottomItems = [...levelData.correct];
-    while (bottomItems.length < 20) {
-        const element = elements[Math.floor(Math.random() * elements.length)];
-        const state = stateSymbols[Math.floor(Math.random() * stateSymbols.length)];
-        const formula = element + state;
-        if (!bottomItems.includes(formula)) bottomItems.push(formula);
-    }
-    shuffle(bottomItems);
-    bottomItems.forEach(item => {
-        const div = document.createElement('div');
-        div.className = 'dragItem';
-        div.draggable = true;
-        div.innerText = item;
-        div.addEventListener('dragstart', e => draggedItem = e.target);
-        bottomContainer.appendChild(div);
-    });
+]
 
-    document.getElementById('feedback').innerText = '';
+const distractors=[
+"H2(g)","O2(g)","H2O(l)","Na(s)","Cl2(g)","NaCl(s)",
+"Mg(s)","MgO(s)","HCl(aq)","NaOH(aq)","K(s)","KOH(aq)",
+"H2(g)","CO2(g)","C(s)","S(s)","SO2(g)","Cu(s)","CuO(s)"
+]
+
+let currentLevel=0
+let dragged=null
+
+function shuffle(arr){
+return arr.sort(()=>Math.random()-0.5)
 }
 
-// Button functionality
-document.getElementById('checkButton').addEventListener('click', () => {
-    const dropzones = document.querySelectorAll('.dropzone');
-    const levelData = levels[currentLevel];
-    let correct = true;
-    dropzones.forEach((zone, index) => {
-        if (zone.innerText !== levelData.correct[index]) correct = false;
-    });
-    if (correct) {
-        document.getElementById('feedback').style.color = 'green';
-        document.getElementById('feedback').innerText = 'Correct! Moving to next level...';
-        currentLevel++;
-        if (currentLevel < levels.length) setTimeout(() => loadLevel(currentLevel), 1500);
-        else setTimeout(() => document.getElementById('feedback').innerText = 'Congratulations! You completed all levels.', 1500);
-    } else {
-        document.getElementById('feedback').style.color = 'red';
-        document.getElementById('feedback').innerText = 'Some answers are incorrect. Please try again.';
-    }
-});
+function loadLevel(){
 
-document.getElementById('skipButton').addEventListener('click', () => {
-    currentLevel++;
-    if (currentLevel < levels.length) loadLevel(currentLevel);
-    else document.getElementById('feedback').innerText = 'You have completed all levels.';
-});
+const level=levels[currentLevel]
 
-document.getElementById('showClueButton').addEventListener('click', () => {
-    alert(levels[currentLevel].clue);
-});
+document.getElementById("levelTitle").innerText=
+"Level "+(currentLevel+1)+" : "+level.scenario
 
-document.getElementById('showAnswerButton').addEventListener('click', () => {
-    const dropzones = document.querySelectorAll('.dropzone');
-    const levelData = levels[currentLevel];
-    dropzones.forEach((zone, index) => zone.innerText = levelData.correct[index]);
-    document.getElementById('feedback').style.color = 'blue';
-    document.getElementById('feedback').innerText = 'Answer shown.';
-});
+const eq=document.getElementById("equation")
+eq.innerHTML=""
 
-// Start the game
-loadLevel(currentLevel);
+let mid=Math.ceil(level.correct.length/2)
+
+level.correct.forEach((item,i)=>{
+
+const box=document.createElement("div")
+box.className="dropzone"
+box.dataset.index=i
+box.innerText="____"
+
+box.addEventListener("dragover",e=>e.preventDefault())
+
+box.addEventListener("drop",e=>{
+if(dragged){
+box.innerText=dragged.innerText
+box.classList.remove("correct","incorrect")
+}
+})
+
+eq.appendChild(box)
+
+if(i===0) eq.appendChild(document.createTextNode(" + "))
+if(i===mid-1) eq.appendChild(document.createTextNode(" → "))
+if(i>0 && i<mid-1) eq.appendChild(document.createTextNode(" + "))
+if(i>=mid && i<level.correct.length-1) eq.appendChild(document.createTextNode(" + "))
+
+})
+
+const bottom=document.getElementById("bottomContainer")
+bottom.innerHTML=""
+
+let options=[...level.correct]
+
+while(options.length<16){
+let r=distractors[Math.floor(Math.random()*distractors.length)]
+if(!options.includes(r)) options.push(r)
+}
+
+shuffle(options)
+
+options.forEach(opt=>{
+const div=document.createElement("div")
+div.className="dragItem"
+div.innerText=opt
+div.draggable=true
+
+div.addEventListener("dragstart",e=>{
+dragged=e.target
+})
+
+bottom.appendChild(div)
+})
+
+document.getElementById("feedback").innerText=""
+
+}
+
+document.getElementById("checkButton").onclick=function(){
+
+const boxes=document.querySelectorAll(".dropzone")
+const answers=levels[currentLevel].correct
+
+let correct=true
+
+boxes.forEach((box,i)=>{
+
+if(box.innerText===answers[i]){
+box.classList.add("correct")
+box.classList.remove("incorrect")
+}else{
+box.classList.add("incorrect")
+box.classList.remove("correct")
+correct=false
+}
+
+})
+
+if(correct){
+document.getElementById("feedback").style.color="lime"
+document.getElementById("feedback").innerText="Correct! Next level..."
+setTimeout(()=>{
+currentLevel++
+if(currentLevel<levels.length) loadLevel()
+else document.getElementById("feedback").innerText="Game Complete!"
+},1200)
+}else{
+document.getElementById("feedback").style.color="red"
+document.getElementById("feedback").innerText="Some answers are incorrect."
+}
+
+}
+
+document.getElementById("skipButton").onclick=function(){
+currentLevel++
+if(currentLevel<levels.length) loadLevel()
+else document.getElementById("feedback").innerText="Game Complete"
+}
+
+document.getElementById("showAnswerButton").onclick=function(){
+
+const boxes=document.querySelectorAll(".dropzone")
+const answers=levels[currentLevel].correct
+
+boxes.forEach((b,i)=>{
+b.innerText=answers[i]
+b.classList.add("correct")
+})
+
+document.getElementById("feedback").style.color="cyan"
+document.getElementById("feedback").innerText="Answer revealed"
+
+}
+
+loadLevel()
+
 </script>
 
 </body>

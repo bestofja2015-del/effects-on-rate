@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Build the Periodic Table</title>
+
+<style>
+
+body{
+font-family:Arial;
+background:#1c0033;
+color:white;
+text-align:center;
+}
+
+#gameArea{
+display:flex;
+justify-content:center;
+align-items:flex-start;
+gap:40px;
+margin-top:20px;
+}
+
+/* PERIODIC TABLE */
+#table{
+display:grid;
+grid-template-columns:repeat(8,100px);
+grid-gap:8px;
+background:#6a1bb3;
+padding:15px;
+border-radius:10px;
+}
+
+.cell{
+height:80px;
+background:#9c4dff;
+border-radius:6px;
+display:flex;
+align-items:center;
+justify-content:center;
+font-weight:bold;
+}
+
+/* DRAG CARDS */
+
+#cards{
+margin-top:20px;
+display:flex;
+flex-wrap:wrap;
+justify-content:center;
+gap:10px;
+}
+
+.card{
+background:#1976ff;
+padding:10px;
+border-radius:6px;
+cursor:grab;
+width:110px;
+font-size:13px;
+}
+
+/* BEAKER */
+
+#beakerContainer{
+display:flex;
+flex-direction:column;
+align-items:center;
+}
+
+#beaker{
+width:120px;
+height:260px;
+border:5px solid white;
+border-bottom-left-radius:25px;
+border-bottom-right-radius:25px;
+position:relative;
+overflow:hidden;
+}
+
+#liquid{
+position:absolute;
+bottom:0;
+width:100%;
+height:0%;
+background:red;
+transition:0.4s;
+}
+
+#mlLabel{
+margin-top:10px;
+font-weight:bold;
+}
+
+</style>
+</head>
+
+<body>
+
+<h1>⚛️ Build the Periodic Table</h1>
+<p>Drag each element to its correct position.</p>
+
+<div id="gameArea">
+
+<div id="table"></div>
+
+<div id="beakerContainer">
+<h3>Error Beaker</h3>
+
+<div id="beaker">
+<div id="liquid"></div>
+</div>
+
+<div id="mlLabel">0 ml</div>
+
+</div>
+
+</div>
+
+<div id="cards"></div>
+
+<script>
+
+const elements = [
+
+{sym:"H",atomic:1,mass:1,conf:"1",group:1,period:1},
+{sym:"He",atomic:2,mass:4,conf:"2",group:8,period:1},
+
+{sym:"Li",atomic:3,mass:7,conf:"2,1",group:1,period:2},
+{sym:"Be",atomic:4,mass:9,conf:"2,2",group:2,period:2},
+{sym:"B",atomic:5,mass:11,conf:"2,3",group:3,period:2},
+{sym:"C",atomic:6,mass:12,conf:"2,4",group:4,period:2},
+{sym:"N",atomic:7,mass:14,conf:"2,5",group:5,period:2},
+{sym:"O",atomic:8,mass:16,conf:"2,6",group:6,period:2},
+{sym:"F",atomic:9,mass:19,conf:"2,7",group:7,period:2},
+{sym:"Ne",atomic:10,mass:20,conf:"2,8",group:8,period:2},
+
+{sym:"Na",atomic:11,mass:23,conf:"2,8,1",group:1,period:3},
+{sym:"Mg",atomic:12,mass:24,conf:"2,8,2",group:2,period:3},
+{sym:"Al",atomic:13,mass:27,conf:"2,8,3",group:3,period:3},
+{sym:"Si",atomic:14,mass:28,conf:"2,8,4",group:4,period:3},
+{sym:"P",atomic:15,mass:31,conf:"2,8,5",group:5,period:3},
+{sym:"S",atomic:16,mass:32,conf:"2,8,6",group:6,period:3},
+{sym:"Cl",atomic:17,mass:35,conf:"2,8,7",group:7,period:3},
+{sym:"Ar",atomic:18,mass:40,conf:"2,8,8",group:8,period:3},
+
+{sym:"K",atomic:19,mass:39,conf:"2,8,8,1",group:1,period:4},
+{sym:"Ca",atomic:20,mass:40,conf:"2,8,8,2",group:2,period:4}
+
+];
+
+let errors=0;
+let correctCount=0;
+
+const table=document.getElementById("table");
+const cards=document.getElementById("cards");
+const liquid=document.getElementById("liquid");
+const mlLabel=document.getElementById("mlLabel");
+
+function startGame(){
+
+errors=0;
+correctCount=0;
+
+table.innerHTML="";
+cards.innerHTML="";
+liquid.style.height="0%";
+mlLabel.textContent="0 ml";
+
+for(let r=1;r<=4;r++){
+for(let c=1;c<=8;c++){
+
+let cell=document.createElement("div");
+cell.className="cell";
+
+cell.dataset.row=r;
+cell.dataset.col=c;
+
+cell.addEventListener("dragover",e=>e.preventDefault());
+cell.addEventListener("drop",dropElement);
+
+table.appendChild(cell);
+
+}
+}
+
+let shuffled=[...elements].sort(()=>Math.random()-0.5);
+
+shuffled.forEach(el=>{
+
+let card=document.createElement("div");
+card.className="card";
+card.draggable=true;
+
+card.innerHTML=`
+${el.sym}<br>
+${el.atomic}<br>
+${el.mass}<br>
+${el.conf}
+`;
+
+card.dataset.group=el.group;
+card.dataset.period=el.period;
+
+card.addEventListener("dragstart",e=>{
+e.dataTransfer.setData("element",JSON.stringify(el));
+window.dragCard=card;
+});
+
+cards.appendChild(card);
+
+});
+
+}
+
+function dropElement(e){
+
+let el=JSON.parse(e.dataTransfer.getData("element"));
+
+if(
+parseInt(this.dataset.row)==el.period &&
+parseInt(this.dataset.col)==el.group
+){
+
+this.textContent=el.sym;
+
+window.dragCard.style.background="green";
+window.dragCard.draggable=false;
+
+correctCount++;
+
+checkWin();
+
+}else{
+
+window.dragCard.style.background="red";
+
+addError();
+
+}
+
+}
+
+function addError(){
+
+errors++;
+
+let ml=errors*10;
+
+liquid.style.height=ml+"%";
+mlLabel.textContent=ml+" ml";
+
+if(errors>=10){
+
+showMessage("YOU LOSE");
+
+}
+
+}
+
+function checkWin(){
+
+if(correctCount===elements.length && errors===0){
+
+showMessage("YOU WIN");
+
+}
+
+}
+
+function showMessage(text){
+
+let msg=document.createElement("div");
+
+msg.style.position="fixed";
+msg.style.top="0";
+msg.style.left="0";
+msg.style.width="100%";
+msg.style.height="100%";
+msg.style.display="flex";
+msg.style.alignItems="center";
+msg.style.justifyContent="center";
+msg.style.fontSize="80px";
+msg.style.fontWeight="bold";
+msg.style.background="black";
+msg.style.zIndex="999";
+
+msg.style.backgroundImage="linear-gradient(90deg,red,orange,yellow,green,blue,indigo,violet)";
+msg.style.webkitBackgroundClip="text";
+msg.style.color="transparent";
+
+msg.textContent=text;
+
+document.body.appendChild(msg);
+
+setTimeout(()=>{
+
+msg.remove();
+startGame();
+
+},2500);
+
+}
+
+startGame();
+
+</script>
+
+</body>
+</html>

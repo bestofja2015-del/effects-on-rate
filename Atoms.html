@@ -1,47 +1,85 @@
 <!DOCTYPE html>
 <html>
 <head>
-<title>Atomic Detective Game</title>
+<title>Atomic Detective</title>
 
 <style>
 
 body{
-font-family:Arial;
-background:#111;
+font-family:Segoe UI;
+background:linear-gradient(135deg,#0f2027,#203a43,#2c5364);
 color:white;
 text-align:center;
+margin:0;
 }
 
 h1{
-color:#00ffff;
+font-size:40px;
+margin-top:20px;
+}
+
+#menu{
+margin-top:40px;
+}
+
+.levelBtn{
+padding:14px 25px;
+font-size:18px;
+margin:10px;
+background:#00bcd4;
+border:none;
+border-radius:8px;
+cursor:pointer;
+}
+
+.levelBtn:hover{
+background:#0097a7;
 }
 
 #game{
-width:800px;
+display:none;
+width:900px;
 margin:auto;
+margin-top:20px;
 }
 
 .panel{
-background:#222;
-padding:20px;
-margin:10px;
+background:rgba(0,0,0,0.35);
+padding:18px;
 border-radius:10px;
+margin:10px;
 }
 
 button{
-padding:10px 20px;
-margin:10px;
+padding:10px 18px;
+margin:8px;
 font-size:16px;
+border:none;
+border-radius:6px;
 cursor:pointer;
+}
+
+.choice{
+background:#3949ab;
+color:white;
+}
+
+.choice:hover{
+background:#5c6bc0;
+}
+
+.control{
+background:#00897b;
+color:white;
 }
 
 #atom{
 position:relative;
-width:200px;
-height:200px;
+width:220px;
+height:220px;
 margin:auto;
 border-radius:50%;
-border:2px solid #666;
+border:2px solid #aaa;
 }
 
 .nucleus{
@@ -49,86 +87,76 @@ position:absolute;
 top:50%;
 left:50%;
 transform:translate(-50%,-50%);
-width:40px;
-height:40px;
-background:red;
+width:50px;
+height:50px;
+background:#ff5252;
 border-radius:50%;
 }
 
 .electron{
 position:absolute;
-width:10px;
-height:10px;
-background:#00ffff;
+width:12px;
+height:12px;
+background:#00e5ff;
 border-radius:50%;
-animation:orbit 4s linear infinite;
+animation:orbit 5s linear infinite;
 }
 
 @keyframes orbit{
-0%{transform:rotate(0deg) translateX(90px) rotate(0deg);}
-100%{transform:rotate(360deg) translateX(90px) rotate(-360deg);}
-}
-
-.drag{
-display:inline-block;
-padding:10px;
-margin:5px;
-background:#444;
-cursor:grab;
-}
-
-.dropzone{
-width:150px;
-height:100px;
-border:2px dashed white;
-margin:auto;
-padding:10px;
+0%{transform:rotate(0deg) translateX(100px) rotate(0deg);}
+100%{transform:rotate(360deg) translateX(100px) rotate(-360deg);}
 }
 
 .correct{
-color:lime;
+color:#8cff98;
+font-weight:bold;
 }
 
 .wrong{
-color:red;
+color:#ff7b7b;
+font-weight:bold;
+}
+
+#stars{
+font-size:40px;
+margin-top:20px;
 }
 
 </style>
-
 </head>
 
 <body>
 
 <h1>Atomic Detective</h1>
 
+<div id="menu">
+
+<h2>Select Game Level</h2>
+
+<button class="levelBtn" onclick="startGame(1)">Level 1 Proton Finder</button>
+<button class="levelBtn" onclick="startGame(2)">Level 2 Neutron Calculator</button>
+<button class="levelBtn" onclick="startGame(3)">Level 3 Electron and Charge</button>
+<button class="levelBtn" onclick="startGame(4)">Level 4 Atomic Notation Master</button>
+
+</div>
+
 <div id="game">
 
 <div class="panel">
-
-Level: <span id="level">1</span>
-Score: <span id="score">0</span>
-Lives: <span id="lives">3</span>
-
+Level <span id="level"></span>
+Score <span id="score">0</span>
+Errors <span id="errors">0</span>
 </div>
 
 <div class="panel" id="question"></div>
 
 <div id="choices"></div>
 
-<div id="builder" style="display:none">
+<div class="panel">
 
-<h3>Drag particles into nucleus</h3>
-
-<div>
-
-<div class="drag" draggable="true" id="proton">Proton</div>
-<div class="drag" draggable="true" id="neutron">Neutron</div>
-
-</div>
-
-<div class="dropzone" id="nucleusDrop"></div>
-
-<button onclick="checkBuilder()">Check Atom</button>
+<button class="control" onclick="showClue()">Clue</button>
+<button class="control" onclick="showAnswer()">Show Answer</button>
+<button class="control" onclick="skipQuestion()">Skip</button>
 
 </div>
 
@@ -138,7 +166,7 @@ Lives: <span id="lives">3</span>
 
 <div id="result"></div>
 
-<button onclick="startGame()">Start Game</button>
+<div id="stars"></div>
 
 </div>
 
@@ -146,7 +174,9 @@ Lives: <span id="lives">3</span>
 
 let level=1
 let score=0
-let lives=3
+let errors=0
+let currentAtom={}
+let correctAnswer=0
 
 const elements=[
 {symbol:"H",atomic:1},
@@ -169,15 +199,10 @@ const elements=[
 {symbol:"Ar",atomic:18}
 ]
 
-let currentAtom={}
-let draggedCount=0
-
 function randomAtom(){
 
 let e=elements[Math.floor(Math.random()*elements.length)]
-
-let mass=e.atomic+Math.floor(Math.random()*10)+1
-
+let mass=e.atomic+Math.floor(Math.random()*15)+1
 let charge=[-2,-1,0,1,2][Math.floor(Math.random()*5)]
 
 return{
@@ -189,123 +214,86 @@ charge:charge
 
 }
 
-function startGame(){
+function startGame(l){
 
-level=1
+level=l
 score=0
-lives=3
+errors=0
 
-updatePanel()
-nextQuestion()
-
-}
-
-function updatePanel(){
+document.getElementById("menu").style.display="none"
+document.getElementById("game").style.display="block"
 
 document.getElementById("level").innerText=level
-document.getElementById("score").innerText=score
-document.getElementById("lives").innerText=lives
+
+nextQuestion()
 
 }
 
 function nextQuestion(){
 
-document.getElementById("result").innerHTML=""
-
 currentAtom=randomAtom()
+
+document.getElementById("result").innerHTML=""
+document.getElementById("stars").innerHTML=""
 
 if(level==1){
 
-protonQuestion()
+correctAnswer=currentAtom.atomic
+
+document.getElementById("question").innerHTML=
+"Element symbol is <b>"+currentAtom.symbol+"</b>. The atomic number equals the number of protons in the nucleus. How many protons are in this atom?"
 
 }
 
 if(level==2){
 
-neutronQuestion()
+correctAnswer=currentAtom.mass-currentAtom.atomic
+
+document.getElementById("question").innerHTML=
+"Atomic number is <b>"+currentAtom.atomic+"</b> and mass number is <b>"+currentAtom.mass+"</b>. Remember mass number equals protons plus neutrons. How many neutrons are present?"
 
 }
 
 if(level==3){
 
-electronQuestion()
+correctAnswer=currentAtom.atomic-currentAtom.charge
+
+document.getElementById("question").innerHTML=
+"The atomic number is <b>"+currentAtom.atomic+"</b>. The ion has a charge of <b>"+currentAtom.charge+"</b>. Calculate the number of electrons."
 
 }
 
 if(level==4){
 
-notationQuestion()
-
-}
-
-}
-
-function protonQuestion(){
+correctAnswer=currentAtom.mass-currentAtom.atomic
 
 document.getElementById("question").innerHTML=
-"Element: "+currentAtom.symbol+
-"<br>How many protons?"
-
-let correct=currentAtom.atomic
-
-generateChoices(correct)
+"Atomic notation shown below. The top number is mass number and bottom is atomic number.<br><br><sup>"+currentAtom.mass+"</sup>"+currentAtom.symbol+"<sub>"+currentAtom.atomic+"</sub><br><br>Calculate the number of neutrons."
 
 }
 
-function neutronQuestion(){
+generateChoices()
 
-document.getElementById("question").innerHTML=
-"Atomic Number: "+currentAtom.atomic+
-"<br>Mass Number: "+currentAtom.mass+
-"<br>How many neutrons?"
-
-let correct=currentAtom.mass-currentAtom.atomic
-
-generateChoices(correct)
+drawElectrons()
 
 }
 
-function electronQuestion(){
-
-document.getElementById("question").innerHTML=
-"Atomic Number: "+currentAtom.atomic+
-"<br>Charge: "+currentAtom.charge+
-"<br>How many electrons?"
-
-let correct=currentAtom.atomic-currentAtom.charge
-
-generateChoices(correct)
-
-addElectrons(correct)
-
-}
-
-function notationQuestion(){
-
-document.getElementById("builder").style.display="block"
-
-document.getElementById("question").innerHTML=
-"<sup>"+currentAtom.mass+"</sup>"+currentAtom.symbol+
-"<sub>"+currentAtom.atomic+"</sub>"+
-"<br>Build the nucleus"
-
-draggedCount=0
-
-}
-
-function generateChoices(correct){
-
-document.getElementById("builder").style.display="none"
+function generateChoices(){
 
 let html=""
+let used=[]
 
 for(let i=0;i<4;i++){
 
-let value=correct+Math.floor(Math.random()*4)-2
+let val
 
-if(value<0)value=0
+do{
+val=correctAnswer+Math.floor(Math.random()*10)-5
+}while(val<0 || used.includes(val))
 
-html+="<button onclick='check("+value+","+correct+")'>"+value+"</button>"
+used.push(val)
+
+html+="<button class='choice' onclick='check("+val+")'>"+val+"</button>"
 
 }
 
@@ -313,57 +301,90 @@ document.getElementById("choices").innerHTML=html
 
 }
 
-function check(answer,correct){
+function check(val){
 
-if(answer==correct){
+if(val==correctAnswer){
 
 score+=10
-
-document.getElementById("result").innerHTML="<span class='correct'>Correct</span>"
+document.getElementById("result").innerHTML="<div class='correct'>Correct</div>"
 
 }else{
 
-lives--
-
-document.getElementById("result").innerHTML="<span class='wrong'>Wrong</span>"
-
-}
-
-if(lives<=0){
-
-alert("Game Over")
-
-startGame()
-
-return
-
-}
-
-if(score%30==0 && level<4){
-
-level++
+errors++
+document.getElementById("result").innerHTML="<div class='wrong'>Incorrect</div>"
 
 }
 
 updatePanel()
 
-setTimeout(nextQuestion,1000)
+if(score>=50){
+
+finishGame()
+return
+}
+
+setTimeout(nextQuestion,1200)
 
 }
 
-function addElectrons(n){
+function updatePanel(){
+
+document.getElementById("score").innerText=score
+document.getElementById("errors").innerText=errors
+
+}
+
+function showClue(){
+
+let clue=""
+
+if(level==1){
+clue="Atomic number equals number of protons."
+}
+
+if(level==2){
+clue="Neutrons equal mass number minus atomic number."
+}
+
+if(level==3){
+clue="Positive charge means electrons lost. Negative means electrons gained."
+}
+
+if(level==4){
+clue="Neutrons equal mass minus atomic number."
+}
+
+document.getElementById("result").innerHTML=clue
+
+}
+
+function showAnswer(){
+
+document.getElementById("result").innerHTML="Answer is "+correctAnswer
+
+}
+
+function skipQuestion(){
+
+errors++
+nextQuestion()
+
+}
+
+function drawElectrons(){
 
 let atom=document.getElementById("atom")
 
 atom.querySelectorAll(".electron").forEach(e=>e.remove())
+
+let n=Math.min(currentAtom.atomic,10)
 
 for(let i=0;i<n;i++){
 
 let e=document.createElement("div")
 
 e.className="electron"
-
-e.style.animationDuration=(3+Math.random()*3)+"s"
+e.style.animationDuration=(3+Math.random()*4)+"s"
 
 atom.appendChild(e)
 
@@ -371,55 +392,21 @@ atom.appendChild(e)
 
 }
 
-let drags=document.querySelectorAll(".drag")
+function finishGame(){
 
-drags.forEach(d=>{
+let stars=""
 
-d.addEventListener("dragstart",e=>{
-
-e.dataTransfer.setData("text",e.target.id)
-
-})
-
-})
-
-let drop=document.getElementById("nucleusDrop")
-
-drop.addEventListener("dragover",e=>e.preventDefault())
-
-drop.addEventListener("drop",e=>{
-
-e.preventDefault()
-
-let data=e.dataTransfer.getData("text")
-
-let node=document.getElementById(data).cloneNode(true)
-
-drop.appendChild(node)
-
-draggedCount++
-
-})
-
-function checkBuilder(){
-
-let expected=currentAtom.atomic
-
-if(draggedCount==expected){
-
-score+=20
-document.getElementById("result").innerHTML="<span class='correct'>Correct nucleus</span>"
-
-}else{
-
-lives--
-document.getElementById("result").innerHTML="<span class='wrong'>Incorrect nucleus</span>"
-
+if(errors<=2){
+stars="⭐⭐⭐ Perfect"
+}
+else if(errors<=5){
+stars="⭐⭐ Good"
+}
+else{
+stars="⭐ Needs Practice"
 }
 
-updatePanel()
-
-setTimeout(nextQuestion,1500)
+document.getElementById("stars").innerHTML=stars
 
 }
 

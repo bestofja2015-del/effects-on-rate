@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Periodic Table Detective Game</title>
+<style>
+body{
+  font-family:Arial;
+  background:#0f1633;
+  color:white;
+  text-align:center;
+}
+h1{color:#00e5ff;}
+.panel{
+  background:#1a2452;
+  padding:15px;
+  margin:10px;
+  border-radius:8px;
+}
+button{
+  padding:8px 12px;
+  margin:4px;
+  border:none;
+  border-radius:6px;
+  cursor:pointer;
+}
+.choice{
+  display:inline-block;
+  background:#3040c0;
+  padding:10px 16px;
+  margin:6px;
+  border-radius:6px;
+  cursor:pointer;
+}
+.choice.correct{background:#0dbb4f;}
+.choice.wrong{background:#d12c2c;}
+#stars{margin-top:10px; font-size:18px;}
+#periodicTable{
+  margin:auto; border-collapse:collapse;
+}
+#periodicTable td{
+  width:50px; height:50px; border:1px solid #888; text-align:center; vertical-align:middle;
+  background:#11163a; cursor:pointer;
+}
+#dragNumbers .numtile{
+  display:inline-block; background:#1976d2; padding:6px 10px; margin:4px; cursor:grab; border-radius:4px;
+}
+.dropzone{
+  width:50px; height:50px; border:2px dashed white; display:inline-block; margin:4px; vertical-align:top;
+}
+</style>
+</head>
+<body>
+
+<h1>Periodic Table Detective</h1>
+
+<div id="menu">
+  <h3>Select Level (5E Lesson)</h3>
+  <div id="levelButtons"></div>
+</div>
+
+<div id="game" style="display:none">
+
+<div class="panel">
+Score <span id="score">0</span> Errors <span id="errors">0</span>
+</div>
+
+<div class="panel" id="question"></div>
+
+<div id="choices"></div>
+
+<div>
+<button onclick="checkAnswer()">Check</button>
+<button onclick="showClue()">Clue</button>
+<button onclick="showAnswer()">Show Answer</button>
+<button onclick="skip()">Skip</button>
+</div>
+
+<div id="stars"></div>
+
+<div id="navigation" style="margin-top:10px;">
+<button onclick="exitLevel()">Exit Level</button>
+<button onclick="nextQuestion()">Next</button>
+</div>
+
+<div id="dragArea" style="display:none; margin-top:20px;">
+<h3>Drag Elements to Correct Table Position</h3>
+<table id="periodicTable" border="1">
+<tr id="row1"></tr>
+<tr id="row2"></tr>
+<tr id="row3"></tr>
+<tr id="row4"></tr>
+</table>
+<div id="dragNumbers"></div>
+<button onclick="checkTable()">Check Table</button>
+</div>
+
+</div>
+
+<script>
+let level=1,score=0,errors=0,selected=null,correctAnswer=null;
+let levelStars=[null,null,null,null,null, null];
+
+const elements=[
+{sym:"H",p:1,e:1,n:0,m:1,row:1,col:1,config:[1]},
+{sym:"He",p:2,e:2,n:2,m:4,row:1,col:8,config:[2]},
+{sym:"Li",p:3,e:3,n:4,m:7,row:2,col:1,config:[2,1]},
+{sym:"Be",p:4,e:4,n:5,m:9,row:2,col:2,config:[2,2]},
+{sym:"B",p:5,e:5,n:6,m:11,row:2,col:3,config:[2,3]},
+{sym:"C",p:6,e:6,n:6,m:12,row:2,col:4,config:[2,4]},
+{sym:"N",p:7,e:7,n:7,m:14,row:2,col:5,config:[2,5]},
+{sym:"O",p:8,e:8,n:8,m:16,row:2,col:6,config:[2,6]},
+{sym:"F",p:9,e:9,n:10,m:19,row:2,col:7,config:[2,7]},
+{sym:"Ne",p:10,e:10,n:10,m:20,row:2,col:8,config:[2,8]},
+{sym:"Na",p:11,e:11,n:12,m:23,row:3,col:1,config:[2,8,1]},
+{sym:"Mg",p:12,e:12,n:12,m:24,row:3,col:2,config:[2,8,2]},
+{sym:"Al",p:13,e:13,n:14,m:27,row:3,col:3,config:[2,8,3]},
+{sym:"Si",p:14,e:14,n:14,m:28,row:3,col:4,config:[2,8,4]},
+{sym:"P",p:15,e:15,n:16,m:31,row:3,col:5,config:[2,8,5]},
+{sym:"S",p:16,e:16,n:16,m:32,row:3,col:6,config:[2,8,6]},
+{sym:"Cl",p:17,e:17,n:18,m:35,row:3,col:7,config:[2,8,7]},
+{sym:"Ar",p:18,e:18,n:22,m:40,row:3,col:8,config:[2,8,8]},
+{sym:"K",p:19,e:19,n:20,m:39,row:4,col:1,config:[2,8,8,1]},
+{sym:"Ca",p:20,e:20,n:20,m:40,row:4,col:2,config:[2,8,8,2]}
+];
+
+function buildMenu(){
+  let html="";
+  for(let i=1;i<=6;i++){
+    let stars=levelStars[i-1]?levelStars[i-1]:"No stars earned";
+    html+=`<div><button onclick="startLevel(${i})">Level ${i}</button> <span>${stars}</span></div>`;
+  }
+  document.getElementById("levelButtons").innerHTML=html;
+}
+buildMenu();
+
+function startLevel(l){
+  level=l; score=0; errors=0;
+  document.getElementById("menu").style.display="none";
+  document.getElementById("game").style.display="block";
+  if(level<6) nextQuestion();
+  else setupDragTable();
+}
+
+function randomElement(){return elements[Math.floor(Math.random()*20)];}
+
+function nextQuestion(){
+  selected=null;
+  let e=randomElement();
+  let q="";
+  if(level==1){
+    q=`Engage: Count protons. ${e.sym} has electrons ${e.e} and neutrons ${e.n}. How many protons?`;
+    correctAnswer=e.p;
+  } else if(level==2){
+    q=`Explore: Count electrons on shells of ${e.sym}.`;
+    correctAnswer=e.e;
+  } else if(level==3){
+    q=`Explain: ${e.sym} mass=${e.m}, protons=${e.p}. How many neutrons?`;
+    correctAnswer=e.m-e.p;
+  } else if(level==4){
+    q=`Elaborate: ${e.sym} atomic number=${e.p}, charge +1. Electrons?`;
+    correctAnswer=e.p-1;
+  } else if(level==5){
+    q=`Evaluate: Atomic notation ${e.m}/${e.p} ${e.sym}. Atomic number?`;
+    correctAnswer=e.p;
+  }
+  document.getElementById("question").innerHTML=q;
+  generateChoices();
+}
+
+function generateChoices(){
+  let choices=[correctAnswer];
+  while(choices.length<4){
+    let n=correctAnswer+Math.floor(Math.random()*6)-3;
+    if(n>0 && !choices.includes(n)) choices.push(n);
+  }
+  choices.sort(()=>Math.random()-0.5);
+  let html="";
+  choices.forEach(v=>{html+=`<div class="choice" onclick="selectChoice(this,${v})">${v}</div>`});
+  document.getElementById("choices").innerHTML=html;
+}
+
+function selectChoice(el,val){
+  selected=val;
+  document.querySelectorAll(".choice").forEach(b=>b.style.outline="none");
+  el.style.outline="3px solid yellow";
+}
+
+function checkAnswer(){
+  if(selected==null) return;
+  document.querySelectorAll(".choice").forEach(b=>{
+    if(parseInt(b.innerText)==correctAnswer) b.classList.add("correct");
+    if(parseInt(b.innerText)==selected && selected!=correctAnswer) b.classList.add("wrong");
+  });
+  if(selected!=correctAnswer){errors++; return;}
+  score++;
+  nextQuestion();
+  updateStars();
+}
+
+function showAnswer(){alert("Correct answer: "+correctAnswer);}
+function showClue(){alert("Use atomic number for protons, electron config for electrons, mass-protons=neutrons");}
+function skip(){errors++; nextQuestion();}
+function updateStars(){
+  let s="";
+  if(errors==0) s="⭐⭐⭐⭐⭐ Perfect";
+  else if(errors<=3) s="⭐⭐⭐⭐ Good";
+  else if(errors<=7) s="⭐⭐⭐ Basic";
+  else if(errors<=12) s="⭐⭐ Needs Practice";
+  else s="⭐ Fail";
+  document.getElementById("stars").innerText=s;
+  levelStars[level-1]=s;
+}
+function exitLevel(){
+  buildMenu();
+  document.getElementById("game").style.display="none";
+  document.getElementById("menu").style.display="block";
+}
+
+function setupDragTable(){
+  document.getElementById("question").innerHTML="Evaluate: Drag each element to correct position on 4x8 periodic grid (first 20 elements)";
+  document.getElementById("dragArea").style.display="block";
+  const table=document.getElementById("periodicTable");
+  for(let r=1;r<=4;r++){
+    let row=document.getElementById("row"+r); row.innerHTML="";
+    for(let c=1;c<=8;c++){
+      let cell=document.createElement("td");
+      cell.dataset.row=r; cell.dataset.col=c;
+      cell.className="dropzone";
+      cell.ondragover=e=>e.preventDefault();
+      cell.ondrop=drop;
+      row.appendChild(cell);
+    }
+  }
+  buildDragNumbers();
+}
+
+function buildDragNumbers(){
+  let html="";
+  elements.slice(0,20).forEach((el,i)=>{
+    html+=`<div class="numtile" draggable="true" id="el${i}" ondragstart="drag(event)">${el.sym}</div>`;
+  });
+  document.getElementById("dragNumbers").innerHTML=html;
+}
+
+function drag(ev){ev.dataTransfer.setData("text",ev.target.id);}
+function drop(ev){ev.preventDefault(); let data=ev.dataTransfer.getData("text"); ev.target.appendChild(document.getElementById(data));}
+
+function checkTable(){
+  let correct=0;
+  elements.slice(0,20).forEach((el,i)=>{
+    let cell=document.querySelector(`td[data-row='${el.row}'][data-col='${el.col}']`);
+    if(cell && cell.firstChild && cell.firstChild.innerText==el.sym){correct++;}
+  });
+  alert("You placed "+correct+" correctly out of 20!");
+}
+</script>
+</body>
+</html>

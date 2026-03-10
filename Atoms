@@ -1,0 +1,429 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Atomic Detective Game</title>
+
+<style>
+
+body{
+font-family:Arial;
+background:#111;
+color:white;
+text-align:center;
+}
+
+h1{
+color:#00ffff;
+}
+
+#game{
+width:800px;
+margin:auto;
+}
+
+.panel{
+background:#222;
+padding:20px;
+margin:10px;
+border-radius:10px;
+}
+
+button{
+padding:10px 20px;
+margin:10px;
+font-size:16px;
+cursor:pointer;
+}
+
+#atom{
+position:relative;
+width:200px;
+height:200px;
+margin:auto;
+border-radius:50%;
+border:2px solid #666;
+}
+
+.nucleus{
+position:absolute;
+top:50%;
+left:50%;
+transform:translate(-50%,-50%);
+width:40px;
+height:40px;
+background:red;
+border-radius:50%;
+}
+
+.electron{
+position:absolute;
+width:10px;
+height:10px;
+background:#00ffff;
+border-radius:50%;
+animation:orbit 4s linear infinite;
+}
+
+@keyframes orbit{
+0%{transform:rotate(0deg) translateX(90px) rotate(0deg);}
+100%{transform:rotate(360deg) translateX(90px) rotate(-360deg);}
+}
+
+.drag{
+display:inline-block;
+padding:10px;
+margin:5px;
+background:#444;
+cursor:grab;
+}
+
+.dropzone{
+width:150px;
+height:100px;
+border:2px dashed white;
+margin:auto;
+padding:10px;
+}
+
+.correct{
+color:lime;
+}
+
+.wrong{
+color:red;
+}
+
+</style>
+
+</head>
+
+<body>
+
+<h1>Atomic Detective</h1>
+
+<div id="game">
+
+<div class="panel">
+
+Level: <span id="level">1</span>
+Score: <span id="score">0</span>
+Lives: <span id="lives">3</span>
+
+</div>
+
+<div class="panel" id="question"></div>
+
+<div id="choices"></div>
+
+<div id="builder" style="display:none">
+
+<h3>Drag particles into nucleus</h3>
+
+<div>
+
+<div class="drag" draggable="true" id="proton">Proton</div>
+<div class="drag" draggable="true" id="neutron">Neutron</div>
+
+</div>
+
+<div class="dropzone" id="nucleusDrop"></div>
+
+<button onclick="checkBuilder()">Check Atom</button>
+
+</div>
+
+<div id="atom">
+<div class="nucleus"></div>
+</div>
+
+<div id="result"></div>
+
+<button onclick="startGame()">Start Game</button>
+
+</div>
+
+<script>
+
+let level=1
+let score=0
+let lives=3
+
+const elements=[
+{symbol:"H",atomic:1},
+{symbol:"He",atomic:2},
+{symbol:"Li",atomic:3},
+{symbol:"Be",atomic:4},
+{symbol:"B",atomic:5},
+{symbol:"C",atomic:6},
+{symbol:"N",atomic:7},
+{symbol:"O",atomic:8},
+{symbol:"F",atomic:9},
+{symbol:"Ne",atomic:10},
+{symbol:"Na",atomic:11},
+{symbol:"Mg",atomic:12},
+{symbol:"Al",atomic:13},
+{symbol:"Si",atomic:14},
+{symbol:"P",atomic:15},
+{symbol:"S",atomic:16},
+{symbol:"Cl",atomic:17},
+{symbol:"Ar",atomic:18}
+]
+
+let currentAtom={}
+let draggedCount=0
+
+function randomAtom(){
+
+let e=elements[Math.floor(Math.random()*elements.length)]
+
+let mass=e.atomic+Math.floor(Math.random()*10)+1
+
+let charge=[-2,-1,0,1,2][Math.floor(Math.random()*5)]
+
+return{
+symbol:e.symbol,
+atomic:e.atomic,
+mass:mass,
+charge:charge
+}
+
+}
+
+function startGame(){
+
+level=1
+score=0
+lives=3
+
+updatePanel()
+nextQuestion()
+
+}
+
+function updatePanel(){
+
+document.getElementById("level").innerText=level
+document.getElementById("score").innerText=score
+document.getElementById("lives").innerText=lives
+
+}
+
+function nextQuestion(){
+
+document.getElementById("result").innerHTML=""
+
+currentAtom=randomAtom()
+
+if(level==1){
+
+protonQuestion()
+
+}
+
+if(level==2){
+
+neutronQuestion()
+
+}
+
+if(level==3){
+
+electronQuestion()
+
+}
+
+if(level==4){
+
+notationQuestion()
+
+}
+
+}
+
+function protonQuestion(){
+
+document.getElementById("question").innerHTML=
+"Element: "+currentAtom.symbol+
+"<br>How many protons?"
+
+let correct=currentAtom.atomic
+
+generateChoices(correct)
+
+}
+
+function neutronQuestion(){
+
+document.getElementById("question").innerHTML=
+"Atomic Number: "+currentAtom.atomic+
+"<br>Mass Number: "+currentAtom.mass+
+"<br>How many neutrons?"
+
+let correct=currentAtom.mass-currentAtom.atomic
+
+generateChoices(correct)
+
+}
+
+function electronQuestion(){
+
+document.getElementById("question").innerHTML=
+"Atomic Number: "+currentAtom.atomic+
+"<br>Charge: "+currentAtom.charge+
+"<br>How many electrons?"
+
+let correct=currentAtom.atomic-currentAtom.charge
+
+generateChoices(correct)
+
+addElectrons(correct)
+
+}
+
+function notationQuestion(){
+
+document.getElementById("builder").style.display="block"
+
+document.getElementById("question").innerHTML=
+"<sup>"+currentAtom.mass+"</sup>"+currentAtom.symbol+
+"<sub>"+currentAtom.atomic+"</sub>"+
+"<br>Build the nucleus"
+
+draggedCount=0
+
+}
+
+function generateChoices(correct){
+
+document.getElementById("builder").style.display="none"
+
+let html=""
+
+for(let i=0;i<4;i++){
+
+let value=correct+Math.floor(Math.random()*4)-2
+
+if(value<0)value=0
+
+html+="<button onclick='check("+value+","+correct+")'>"+value+"</button>"
+
+}
+
+document.getElementById("choices").innerHTML=html
+
+}
+
+function check(answer,correct){
+
+if(answer==correct){
+
+score+=10
+
+document.getElementById("result").innerHTML="<span class='correct'>Correct</span>"
+
+}else{
+
+lives--
+
+document.getElementById("result").innerHTML="<span class='wrong'>Wrong</span>"
+
+}
+
+if(lives<=0){
+
+alert("Game Over")
+
+startGame()
+
+return
+
+}
+
+if(score%30==0 && level<4){
+
+level++
+
+}
+
+updatePanel()
+
+setTimeout(nextQuestion,1000)
+
+}
+
+function addElectrons(n){
+
+let atom=document.getElementById("atom")
+
+atom.querySelectorAll(".electron").forEach(e=>e.remove())
+
+for(let i=0;i<n;i++){
+
+let e=document.createElement("div")
+
+e.className="electron"
+
+e.style.animationDuration=(3+Math.random()*3)+"s"
+
+atom.appendChild(e)
+
+}
+
+}
+
+let drags=document.querySelectorAll(".drag")
+
+drags.forEach(d=>{
+
+d.addEventListener("dragstart",e=>{
+
+e.dataTransfer.setData("text",e.target.id)
+
+})
+
+})
+
+let drop=document.getElementById("nucleusDrop")
+
+drop.addEventListener("dragover",e=>e.preventDefault())
+
+drop.addEventListener("drop",e=>{
+
+e.preventDefault()
+
+let data=e.dataTransfer.getData("text")
+
+let node=document.getElementById(data).cloneNode(true)
+
+drop.appendChild(node)
+
+draggedCount++
+
+})
+
+function checkBuilder(){
+
+let expected=currentAtom.atomic
+
+if(draggedCount==expected){
+
+score+=20
+document.getElementById("result").innerHTML="<span class='correct'>Correct nucleus</span>"
+
+}else{
+
+lives--
+document.getElementById("result").innerHTML="<span class='wrong'>Incorrect nucleus</span>"
+
+}
+
+updatePanel()
+
+setTimeout(nextQuestion,1500)
+
+}
+
+</script>
+
+</body>
+</html>

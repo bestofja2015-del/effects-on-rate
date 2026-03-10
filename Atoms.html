@@ -1,128 +1,145 @@
 <!DOCTYPE html>
 <html>
+
 <head>
+
 <title>Atomic Detective</title>
 
 <style>
 
 body{
 font-family:Segoe UI;
-background:linear-gradient(135deg,#0f2027,#203a43,#2c5364);
+background:#0c1326;
 color:white;
 text-align:center;
-margin:0;
 }
 
 h1{
-font-size:40px;
-margin-top:20px;
+color:#00e5ff;
 }
 
 #menu{
-margin-top:40px;
+margin:20px;
 }
 
-.levelBtn{
-padding:14px 25px;
-font-size:18px;
-margin:10px;
-background:#00bcd4;
-border:none;
-border-radius:8px;
-cursor:pointer;
-}
-
-.levelBtn:hover{
-background:#0097a7;
-}
-
-#game{
-display:none;
-width:900px;
-margin:auto;
-margin-top:20px;
-}
-
-.panel{
-background:rgba(0,0,0,0.35);
-padding:18px;
-border-radius:10px;
-margin:10px;
-}
-
-button{
-padding:10px 18px;
-margin:8px;
-font-size:16px;
+.levelbtn{
+background:#3949ab;
+color:white;
+padding:10px;
+margin:5px;
 border:none;
 border-radius:6px;
 cursor:pointer;
 }
 
+#game{
+width:900px;
+margin:auto;
+}
+
+.panel{
+background:#1b2450;
+padding:20px;
+border-radius:10px;
+margin:15px;
+}
+
 .choice{
-background:#3949ab;
-color:white;
+background:#2636b0;
+padding:12px;
+margin:8px;
+border-radius:6px;
+cursor:pointer;
+display:inline-block;
+min-width:80px;
 }
 
 .choice:hover{
-background:#5c6bc0;
+background:#4052ff;
 }
 
-.control{
-background:#00897b;
+.correct{
+background:#0dbb4f !important;
+}
+
+.wrong{
+background:#d12c2c !important;
+}
+
+button{
+padding:10px;
+margin:6px;
+border:none;
+border-radius:6px;
+cursor:pointer;
+}
+
+.action{
+background:#607d8b;
 color:white;
 }
 
 #atom{
-position:relative;
 width:220px;
 height:220px;
-margin:auto;
+border:2px solid #6a6cff;
 border-radius:50%;
-border:2px solid #aaa;
+margin:auto;
+position:relative;
 }
 
 .nucleus{
+width:40px;
+height:40px;
+background:#ff5252;
+border-radius:50%;
 position:absolute;
 top:50%;
 left:50%;
 transform:translate(-50%,-50%);
-width:50px;
-height:50px;
-background:#ff5252;
-border-radius:50%;
 }
 
 .electron{
-position:absolute;
-width:12px;
-height:12px;
-background:#00e5ff;
+width:10px;
+height:10px;
+background:#00ffff;
 border-radius:50%;
-animation:orbit 5s linear infinite;
+position:absolute;
+animation:orbit 4s linear infinite;
 }
 
 @keyframes orbit{
-0%{transform:rotate(0deg) translateX(100px) rotate(0deg);}
-100%{transform:rotate(360deg) translateX(100px) rotate(-360deg);}
+0%{transform:rotate(0deg) translateX(90px) rotate(0deg);}
+100%{transform:rotate(360deg) translateX(90px) rotate(-360deg);}
 }
 
-.correct{
-color:#8cff98;
-font-weight:bold;
-}
-
-.wrong{
-color:#ff7b7b;
-font-weight:bold;
-}
-
-#stars{
-font-size:40px;
+#dragNumbers{
 margin-top:20px;
 }
 
+.numtile{
+display:inline-block;
+background:#1976d2;
+padding:8px;
+margin:4px;
+cursor:grab;
+border-radius:4px;
+}
+
+.drop{
+width:60px;
+height:30px;
+border:2px dashed white;
+display:inline-block;
+margin:4px;
+}
+
+table{
+margin:auto;
+}
+
 </style>
+
 </head>
 
 <body>
@@ -131,32 +148,36 @@ margin-top:20px;
 
 <div id="menu">
 
-<h2>Select Game Level</h2>
+<h3>Select Level</h3>
 
-<button class="levelBtn" onclick="startGame(1)">Level 1 Proton Finder</button>
-<button class="levelBtn" onclick="startGame(2)">Level 2 Neutron Calculator</button>
-<button class="levelBtn" onclick="startGame(3)">Level 3 Electron and Charge</button>
-<button class="levelBtn" onclick="startGame(4)">Level 4 Atomic Notation Master</button>
+<button class="levelbtn" onclick="startLevel(1)">Level 1 Protons</button>
+<button class="levelbtn" onclick="startLevel(2)">Level 2 Electrons</button>
+<button class="levelbtn" onclick="startLevel(3)">Level 3 Neutrons</button>
+<button class="levelbtn" onclick="startLevel(4)">Level 4 Charge</button>
+<button class="levelbtn" onclick="startLevel(5)">Level 5 Atomic Notation</button>
+<button class="levelbtn" onclick="startLevel(6)">Level 6 Table Challenge</button>
 
 </div>
 
-<div id="game">
+<div id="game" style="display:none">
 
 <div class="panel">
-Level <span id="level"></span>
+
 Score <span id="score">0</span>
 Errors <span id="errors">0</span>
+
 </div>
 
 <div class="panel" id="question"></div>
 
 <div id="choices"></div>
 
-<div class="panel">
+<div>
 
-<button class="control" onclick="showClue()">Clue</button>
-<button class="control" onclick="showAnswer()">Show Answer</button>
-<button class="control" onclick="skipQuestion()">Skip</button>
+<button class="action" onclick="checkAnswer()">Check Answer</button>
+<button class="action" onclick="showAnswer()">Show Answer</button>
+<button class="action" onclick="showClue()">Clue</button>
+<button class="action" onclick="skip()">Skip</button>
 
 </div>
 
@@ -164,9 +185,37 @@ Errors <span id="errors">0</span>
 <div class="nucleus"></div>
 </div>
 
-<div id="result"></div>
+<div id="dragArea" style="display:none">
 
-<div id="stars"></div>
+<h3>Complete the table</h3>
+
+<table border="1">
+
+<tr>
+<th>Symbol</th>
+<th>Protons</th>
+<th>Neutrons</th>
+<th>Electrons</th>
+<th>Mass</th>
+</tr>
+
+<tr>
+<td id="symbolCell"></td>
+<td class="drop"></td>
+<td class="drop"></td>
+<td class="drop"></td>
+<td class="drop"></td>
+</tr>
+
+</table>
+
+<div id="dragNumbers"></div>
+
+<button onclick="checkTable()">Check Table</button>
+
+</div>
+
+<div id="rating"></div>
 
 </div>
 
@@ -175,46 +224,19 @@ Errors <span id="errors">0</span>
 let level=1
 let score=0
 let errors=0
-let currentAtom={}
 let correctAnswer=0
+let selected=null
 
 const elements=[
-{symbol:"H",atomic:1},
-{symbol:"He",atomic:2},
-{symbol:"Li",atomic:3},
-{symbol:"Be",atomic:4},
-{symbol:"B",atomic:5},
-{symbol:"C",atomic:6},
-{symbol:"N",atomic:7},
-{symbol:"O",atomic:8},
-{symbol:"F",atomic:9},
-{symbol:"Ne",atomic:10},
-{symbol:"Na",atomic:11},
-{symbol:"Mg",atomic:12},
-{symbol:"Al",atomic:13},
-{symbol:"Si",atomic:14},
-{symbol:"P",atomic:15},
-{symbol:"S",atomic:16},
-{symbol:"Cl",atomic:17},
-{symbol:"Ar",atomic:18}
+{sym:"C",p:6,m:12},
+{sym:"O",p:8,m:16},
+{sym:"Na",p:11,m:23},
+{sym:"Mg",p:12,m:24},
+{sym:"Cl",p:17,m:35},
+{sym:"Ne",p:10,m:20}
 ]
 
-function randomAtom(){
-
-let e=elements[Math.floor(Math.random()*elements.length)]
-let mass=e.atomic+Math.floor(Math.random()*15)+1
-let charge=[-2,-1,0,1,2][Math.floor(Math.random()*5)]
-
-return{
-symbol:e.symbol,
-atomic:e.atomic,
-mass:mass,
-charge:charge
-}
-
-}
-
-function startGame(l){
+function startLevel(l){
 
 level=l
 score=0
@@ -223,168 +245,169 @@ errors=0
 document.getElementById("menu").style.display="none"
 document.getElementById("game").style.display="block"
 
-document.getElementById("level").innerText=level
-
-nextQuestion()
+next()
 
 }
 
-function nextQuestion(){
+function randomElement(){
 
-currentAtom=randomAtom()
+return elements[Math.floor(Math.random()*elements.length)]
 
-document.getElementById("result").innerHTML=""
-document.getElementById("stars").innerHTML=""
+}
+
+function next(){
+
+let e=randomElement()
+
+let q=""
+let options=[]
 
 if(level==1){
 
-correctAnswer=currentAtom.atomic
-
-document.getElementById("question").innerHTML=
-"Element symbol is <b>"+currentAtom.symbol+"</b>. The atomic number equals the number of protons in the nucleus. How many protons are in this atom?"
+q=e.sym+" has 6 electrons and mass 12. If neutral how many protons?"
+correctAnswer=e.p
 
 }
 
 if(level==2){
 
-correctAnswer=currentAtom.mass-currentAtom.atomic
-
-document.getElementById("question").innerHTML=
-"Atomic number is <b>"+currentAtom.atomic+"</b> and mass number is <b>"+currentAtom.mass+"</b>. Remember mass number equals protons plus neutrons. How many neutrons are present?"
+q=e.sym+" is in group 8 period 2. How many electrons does it have?"
+correctAnswer=e.p
 
 }
 
 if(level==3){
 
-correctAnswer=currentAtom.atomic-currentAtom.charge
-
-document.getElementById("question").innerHTML=
-"The atomic number is <b>"+currentAtom.atomic+"</b>. The ion has a charge of <b>"+currentAtom.charge+"</b>. Calculate the number of electrons."
+q=e.sym+" has mass "+e.m+" and atomic number "+e.p+". How many neutrons?"
+correctAnswer=e.m-e.p
 
 }
 
 if(level==4){
 
-correctAnswer=currentAtom.mass-currentAtom.atomic
-
-document.getElementById("question").innerHTML=
-"Atomic notation shown below. The top number is mass number and bottom is atomic number.<br><br><sup>"+currentAtom.mass+"</sup>"+currentAtom.symbol+"<sub>"+currentAtom.atomic+"</sub><br><br>Calculate the number of neutrons."
+q=e.sym+" has atomic number "+e.p+" and charge +1. How many electrons?"
+correctAnswer=e.p-1
 
 }
 
+if(level==5){
+
+q="In notation <sup>"+e.m+"</sup>"+e.sym+"<sub>"+e.p+"</sub> find protons"
+correctAnswer=e.p
+
+}
+
+document.getElementById("question").innerHTML=q
+
 generateChoices()
 
-drawElectrons()
+addElectrons(e.p)
 
 }
 
 function generateChoices(){
 
 let html=""
-let used=[]
 
-for(let i=0;i<4;i++){
+let answers=[correctAnswer]
 
-let val
+while(answers.length<4){
 
-do{
-val=correctAnswer+Math.floor(Math.random()*10)-5
-}while(val<0 || used.includes(val))
+let n=correctAnswer+Math.floor(Math.random()*6)-3
 
-used.push(val)
-
-html+="<button class='choice' onclick='check("+val+")'>"+val+"</button>"
+if(n>0 && !answers.includes(n))answers.push(n)
 
 }
+
+answers.sort(()=>Math.random()-0.5)
+
+answers.forEach(v=>{
+
+html+="<div class='choice' onclick='selectChoice(this,"+v+")'>"+v+"</div>"
+
+})
 
 document.getElementById("choices").innerHTML=html
 
 }
 
-function check(val){
+function selectChoice(el,val){
 
-if(val==correctAnswer){
+selected=val
 
-score+=10
-document.getElementById("result").innerHTML="<div class='correct'>Correct</div>"
+document.querySelectorAll(".choice").forEach(b=>b.style.outline="none")
+
+el.style.outline="3px solid yellow"
+
+}
+
+function checkAnswer(){
+
+if(selected==null)return
+
+let btns=document.querySelectorAll(".choice")
+
+btns.forEach(b=>{
+
+if(parseInt(b.innerText)==correctAnswer){
+b.classList.add("correct")
+}
+
+if(parseInt(b.innerText)==selected && selected!=correctAnswer){
+b.classList.add("wrong")
+}
+
+})
+
+if(selected==correctAnswer){
+
+score++
+
+setTimeout(next,1200)
 
 }else{
 
 errors++
-document.getElementById("result").innerHTML="<div class='wrong'>Incorrect</div>"
 
 }
 
-updatePanel()
-
-if(score>=50){
-
-finishGame()
-return
-}
-
-setTimeout(nextQuestion,1200)
-
-}
-
-function updatePanel(){
-
-document.getElementById("score").innerText=score
-document.getElementById("errors").innerText=errors
-
-}
-
-function showClue(){
-
-let clue=""
-
-if(level==1){
-clue="Atomic number equals number of protons."
-}
-
-if(level==2){
-clue="Neutrons equal mass number minus atomic number."
-}
-
-if(level==3){
-clue="Positive charge means electrons lost. Negative means electrons gained."
-}
-
-if(level==4){
-clue="Neutrons equal mass minus atomic number."
-}
-
-document.getElementById("result").innerHTML=clue
+updateRating()
 
 }
 
 function showAnswer(){
 
-document.getElementById("result").innerHTML="Answer is "+correctAnswer
+alert("Correct answer is "+correctAnswer)
 
 }
 
-function skipQuestion(){
+function showClue(){
+
+alert("Remember atomic number equals protons")
+
+}
+
+function skip(){
 
 errors++
-nextQuestion()
+
+next()
 
 }
 
-function drawElectrons(){
+function addElectrons(n){
 
 let atom=document.getElementById("atom")
 
 atom.querySelectorAll(".electron").forEach(e=>e.remove())
-
-let n=Math.min(currentAtom.atomic,10)
 
 for(let i=0;i<n;i++){
 
 let e=document.createElement("div")
 
 e.className="electron"
-e.style.animationDuration=(3+Math.random()*4)+"s"
+
+e.style.animationDuration=(3+Math.random()*3)+"s"
 
 atom.appendChild(e)
 
@@ -392,25 +415,36 @@ atom.appendChild(e)
 
 }
 
-function finishGame(){
+function updateRating(){
 
 let stars=""
 
-if(errors<=2){
-stars="⭐⭐⭐ Perfect"
-}
-else if(errors<=5){
-stars="⭐⭐ Good"
-}
-else{
-stars="⭐ Needs Practice"
+if(errors==0)stars="⭐⭐⭐⭐⭐ Perfect"
+else if(errors<=3)stars="⭐⭐⭐⭐ Good"
+else if(errors<=7)stars="⭐⭐⭐ Basic Try Again"
+else if(errors<=12)stars="⭐⭐ Needs Practice"
+else stars="⭐ Fail"
+
+document.getElementById("rating").innerHTML=stars
+
 }
 
-document.getElementById("stars").innerHTML=stars
+function buildDragNumbers(){
+
+let html=""
+
+for(let i=0;i<50;i++){
+
+html+="<div draggable='true' class='numtile'>"+i+"</div>"
+
+}
+
+document.getElementById("dragNumbers").innerHTML=html
 
 }
 
 </script>
 
 </body>
+
 </html>

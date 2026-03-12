@@ -1,276 +1,292 @@
 <!DOCTYPE html>
 <html>
 <head>
-<meta charset="UTF-8">
-<title>Organic Chemistry Quiz</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
 
 <style>
 
 body{
 font-family:Arial;
-background:#f5f5ff;
+background:#f2f4f8;
+margin:0;
 padding:20px;
-}
-
-h1{
 text-align:center;
 }
 
-#quizBox{
+h1{
+font-size:40px;
+margin-bottom:20px;
+}
+
+#gameArea{
+display:flex;
+justify-content:center;
+align-items:flex-start;
+gap:40px;
+flex-wrap:wrap;
+}
+
+/* QUESTION */
+
+#question{
+font-size:36px;
+font-weight:bold;
+color:black;
+margin-bottom:30px;
 max-width:900px;
-margin:auto;
-background:white;
-padding:20px;
+}
+
+/* OPTIONS */
+
+.option{
+background:yellow;
+color:black;
+font-size:28px;
+padding:18px;
+margin:10px auto;
+border-radius:12px;
+border:none;
+width:90%;
+max-width:600px;
+cursor:pointer;
+display:block;
+}
+
+.option:hover{
+transform:scale(1.02);
+}
+
+.correct{
+background:#2e7d32;
+color:white;
+}
+
+.incorrect{
+background:#c62828;
+color:white;
+}
+
+/* BUTTONS */
+
+.controlBtn{
+font-size:22px;
+padding:14px;
+margin:10px;
+border:none;
 border-radius:10px;
-box-shadow:0 0 10px rgba(0,0,0,0.2);
+cursor:pointer;
 }
 
-.question{
-margin-bottom:25px;
+.check{background:#1976d2;color:white;}
+.show{background:#6a1b9a;color:white;}
+.skip{background:#9e9e9e;color:white;}
+
+/* BEAKER */
+
+#beakerContainer{
+width:120px;
+height:420px;
+border:5px solid black;
+border-bottom:12px solid black;
+border-radius:10px 10px 20px 20px;
+position:relative;
+background:white;
 }
 
-svg{
+#liquid{
+position:absolute;
+bottom:0;
+width:100%;
+height:0%;
+background:#4fc3f7;
+transition:height 0.5s;
+}
+
+#mlLabel{
 margin-top:10px;
-margin-bottom:10px;
-}
-
-button{
-padding:10px 20px;
-font-size:16px;
+font-size:22px;
+font-weight:bold;
 }
 
 </style>
 </head>
 
-
 <body>
 
-<h1>Organic Chemistry MCQ Test</h1>
+<h1>Chemistry Challenge</h1>
 
-<div id="quizBox"></div>
+<div id="gameArea">
 
-<button onclick="submitQuiz()">Submit Quiz</button>
+<div>
 
-<h2 id="result"></h2>
+<div id="question"></div>
 
+<div id="options"></div>
+
+<div>
+
+<button class="controlBtn check" onclick="checkAnswer()">Check Answer</button>
+
+<button class="controlBtn show" onclick="showAnswer()">Show Answer</button>
+
+<button class="controlBtn skip" onclick="nextQuestion()">Skip Question</button>
+
+</div>
+
+</div>
+
+<div>
+
+<div id="beakerContainer">
+<div id="liquid"></div>
+</div>
+
+<div id="mlLabel">0 mL</div>
+
+</div>
+
+</div>
 
 <script>
 
-/* ---------- DRAW ORGANIC STRUCTURES ---------- */
-
-function drawAlkane(carbons){
-
-let svg='<svg width="'+(carbons*70)+'" height="120">'
-
-for(let i=0;i<carbons;i++){
-
-let x=50+i*60
-let y=60
-
-svg+='<circle cx="'+x+'" cy="'+y+'" r="12" fill="black"/>'
-svg+='<text x="'+(x-4)+'" y="'+(y+4)+'" fill="white">C</text>'
-
-if(i>0){
-svg+='<line x1="'+(x-48)+'" y1="'+y+'" x2="'+(x-12)+'" y2="'+y+'" stroke="black" stroke-width="3"/>'
-}
-
-}
-
-svg+='</svg>'
-
-return svg
-
-}
-
-
-/* ---------- QUESTION BANK ---------- */
+/* QUESTIONS */
 
 const questions=[
 
 {
-q:"Natural gas mainly contains:",
-options:["Methane","Propane","Butane","Ethane"],
+q:"What is the chemical symbol for Carbon?",
+options:["C","Ca","Co"],
 answer:0
 },
 
 {
-q:"Petroleum is separated into fractions using:",
-options:["Crystallisation","Filtration","Fractional distillation","Evaporation"],
-answer:2
-},
-
-{
-q:"Which petroleum fraction is mainly used as fuel for cars?",
-options:["Bitumen","Gasoline","Lubricating oil","Refinery gas"],
+q:"What type of bond forms when electrons are shared?",
+options:["Ionic bond","Covalent bond","Metallic bond"],
 answer:1
 },
 
 {
-q:"Lubricating oil is mainly used for:",
-options:["Road surfacing","Reducing friction in engines","Cooking fuel","Plastic manufacture"],
+q:"What is the pH of pure water?",
+options:["7","1","14"],
+answer:0
+},
+
+{
+q:"What gas do plants use in photosynthesis?",
+options:["Oxygen","Carbon dioxide","Nitrogen"],
 answer:1
-},
-
-{
-q:"Which process breaks long hydrocarbon chains into smaller ones?",
-options:["Cracking","Polymerisation","Hydration","Neutralisation"],
-answer:0
-},
-
-{
-q:"Which type of cracking uses a catalyst?",
-options:["Thermal cracking","Catalytic cracking","Steam cracking","Natural cracking"],
-answer:1
-},
-
-{
-q:"Carbon atoms normally form how many bonds?",
-options:["2","3","4","6"],
-answer:2
-},
-
-{
-q:"Which compound belongs to the alcohol homologous series?",
-options:["CH3COOH","C2H4","C2H5OH","C3H8"],
-answer:2
-},
-
-{
-q:"General formula for alkanes:",
-options:["CnH2n","CnH2n+2","CnH2n-2","CnHn"],
-answer:1
-},
-
-{
-q:"General formula for alkenes:",
-options:["CnH2n","CnH2n+2","CnH2n-2","CnH3n"],
-answer:0
-},
-
-{
-q:"Compounds in the same homologous series have:",
-options:["Same functional group","Same colour","Same density","Same boiling point"],
-answer:0
-},
-
-{
-q:"Structural isomerism means:",
-options:["Same formula different structure","Same structure different formula","Different formula same structure","Same mass different atoms"],
-answer:0
-},
-
-{
-q:"Reaction most common for alkanes:",
-options:["Addition","Substitution","Neutralisation","Hydration"],
-answer:1
-},
-
-{
-q:"Reaction typical for alkenes:",
-options:["Addition","Substitution","Precipitation","Condensation"],
-answer:0
-},
-
-{
-q:"Hydrogenation of alkenes produces:",
-options:["Alcohol","Alkane","Acid","Ester"],
-answer:1
-},
-
-{
-q:"Hydration of an alkene produces:",
-options:["Alcohol","Alkane","Ketone","Acid"],
-answer:0
 }
 
 ]
 
+let current=0
+let selected=null
+let ml=0
 
-/* ---------- GENERATED STRUCTURE QUESTIONS ---------- */
+/* LOAD QUESTION */
 
-function structureQuestion(){
+function loadQuestion(){
 
-let carbons=Math.floor(Math.random()*4)+3
-let names=["Propane","Butane","Pentane","Hexane","Heptane","Octane"]
+selected=null
 
-return{
+let q=questions[current]
 
-q:"Name the alkane shown below:",
-image:drawAlkane(carbons),
-options:names,
-answer:carbons-3
+document.getElementById("question").innerText=q.q
 
-}
+let container=document.getElementById("options")
+container.innerHTML=""
 
-}
+q.options.forEach((opt,i)=>{
 
+let btn=document.createElement("button")
+btn.className="option"
+btn.innerText=opt
 
-/* ---------- BUILD QUIZ ---------- */
+btn.onclick=function(){
 
-let quiz=[]
-for(let i=0;i<30;i++){
+document.querySelectorAll(".option").forEach(b=>b.style.border="none")
 
-quiz.push(questions[Math.floor(Math.random()*questions.length)])
+btn.style.border="4px solid black"
 
-}
-
-for(let i=0;i<10;i++){
-
-quiz.push(structureQuestion())
+selected=i
 
 }
 
-
-function loadQuiz(){
-
-let html=""
-
-quiz.forEach((q,i)=>{
-
-html+='<div class="question">'
-html+="<b>Q"+(i+1)+". "+q.q+"</b>"
-
-if(q.image){
-html+=q.image
-}
-
-q.options.forEach((opt,j)=>{
-
-html+='<br><input type="radio" name="q'+i+'" value="'+j+'">'+opt
+container.appendChild(btn)
 
 })
 
-html+='</div>'
+}
 
-})
+/* CHECK ANSWER */
 
-document.getElementById("quizBox").innerHTML=html
+function checkAnswer(){
+
+if(selected===null) return
+
+let q=questions[current]
+
+let buttons=document.querySelectorAll(".option")
+
+buttons[q.answer].classList.add("correct")
+
+if(selected!==q.answer){
+
+buttons[selected].classList.add("incorrect")
+
+}else{
+
+addLiquid()
 
 }
 
-
-loadQuiz()
-
-
-/* ---------- MARKING ---------- */
-
-function submitQuiz(){
-
-let score=0
-
-quiz.forEach((q,i)=>{
-
-let selected=document.querySelector('input[name="q'+i+'"]:checked')
-
-if(selected && selected.value==q.answer){
-score++
 }
 
-})
+/* SHOW ANSWER */
 
-document.getElementById("result").innerText="Score: "+score+" / 40"
+function showAnswer(){
+
+let q=questions[current]
+
+let buttons=document.querySelectorAll(".option")
+
+buttons[q.answer].classList.add("correct")
 
 }
+
+/* NEXT QUESTION */
+
+function nextQuestion(){
+
+current++
+
+if(current>=questions.length){
+current=0
+}
+
+loadQuestion()
+
+}
+
+/* BEAKER FILL */
+
+function addLiquid(){
+
+ml+=10
+
+if(ml>400) ml=400
+
+let percent=(ml/400)*100
+
+document.getElementById("liquid").style.height=percent+"%"
+
+document.getElementById("mlLabel").innerText=ml+" mL"
+
+}
+
+/* START */
+
+loadQuestion()
 
 </script>
 

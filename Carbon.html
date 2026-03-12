@@ -8,43 +8,33 @@
 body{
 font-family:Arial;
 background:#f2f4f8;
+text-align:center;
 margin:0;
 padding:20px;
-text-align:center;
 }
 
-h1{
-font-size:40px;
-margin-bottom:20px;
-}
-
-#gameArea{
+#container{
 display:flex;
 justify-content:center;
-align-items:flex-start;
 gap:40px;
 flex-wrap:wrap;
 }
-
-/* QUESTION */
 
 #question{
 font-size:36px;
 font-weight:bold;
 color:black;
 margin-bottom:30px;
-max-width:900px;
+max-width:800px;
 }
-
-/* OPTIONS */
 
 .option{
 background:yellow;
 color:black;
-font-size:28px;
-padding:18px;
+font-size:26px;
+padding:16px;
 margin:10px auto;
-border-radius:12px;
+border-radius:10px;
 border:none;
 width:90%;
 max-width:600px;
@@ -56,34 +46,23 @@ display:block;
 transform:scale(1.02);
 }
 
-.correct{
-background:#2e7d32;
-color:white;
-}
+.correct{background:#2e7d32;color:white;}
+.wrong{background:#c62828;color:white;}
 
-.incorrect{
-background:#c62828;
-color:white;
-}
-
-/* BUTTONS */
-
-.controlBtn{
-font-size:22px;
-padding:14px;
+button{
+font-size:20px;
+padding:12px 20px;
 margin:10px;
 border:none;
-border-radius:10px;
+border-radius:8px;
 cursor:pointer;
 }
 
-.check{background:#1976d2;color:white;}
-.show{background:#6a1b9a;color:white;}
-.skip{background:#9e9e9e;color:white;}
+#check{background:#1976d2;color:white;}
+#show{background:#6a1b9a;color:white;}
+#skip{background:#9e9e9e;color:white;}
 
-/* BEAKER */
-
-#beakerContainer{
+#beaker{
 width:120px;
 height:420px;
 border:5px solid black;
@@ -102,10 +81,10 @@ background:#4fc3f7;
 transition:height 0.5s;
 }
 
-#mlLabel{
-margin-top:10px;
+#ml{
 font-size:22px;
 font-weight:bold;
+margin-top:10px;
 }
 
 </style>
@@ -113,9 +92,9 @@ font-weight:bold;
 
 <body>
 
-<h1>Chemistry Challenge</h1>
+<h1>Chemistry Quiz</h1>
 
-<div id="gameArea">
+<div id="container">
 
 <div>
 
@@ -124,58 +103,67 @@ font-weight:bold;
 <div id="options"></div>
 
 <div>
-
-<button class="controlBtn check" onclick="checkAnswer()">Check Answer</button>
-
-<button class="controlBtn show" onclick="showAnswer()">Show Answer</button>
-
-<button class="controlBtn skip" onclick="nextQuestion()">Skip Question</button>
-
+<button id="check" onclick="checkAnswer()">Check Answer</button>
+<button id="show" onclick="showAnswer()">Show Answer</button>
+<button id="skip" onclick="nextQuestion()">Skip Question</button>
 </div>
 
 </div>
 
 <div>
-
-<div id="beakerContainer">
+<div id="beaker">
 <div id="liquid"></div>
 </div>
-
-<div id="mlLabel">0 mL</div>
-
+<div id="ml">0 mL</div>
 </div>
 
 </div>
 
 <script>
 
-/* QUESTIONS */
-
 const questions=[
 
-{
-q:"What is the chemical symbol for Carbon?",
-options:["C","Ca","Co"],
-answer:0
-},
+{q:"Natural gas mainly contains:",o:["Methane","Propane","Butane","Ethane"],a:0},
+{q:"Natural gas mainly contains:",o:["Methane","Propane","Butane","Ethane"],a:0},
+{q:"Which type of cracking uses a catalyst?",o:["Thermal cracking","Catalytic cracking","Steam cracking","Natural cracking"],a:1},
+{q:"Which compound belongs to the alcohol homologous series?",o:["CH3COOH","C2H4","C2H5OH","C3H8"],a:2},
+{q:"Structural isomerism means:",o:["Same formula different structure","Same structure different formula","Different formula same structure","Same mass different atoms"],a:0},
+{q:"Hydrogenation of alkenes produces:",o:["Alcohol","Alkane","Acid","Ester"],a:1},
+{q:"Hydrogenation of alkenes produces:",o:["Alcohol","Alkane","Acid","Ester"],a:1},
+{q:"General formula for alkenes:",o:["CnH2n","CnH2n+2","CnH2n-2","CnH3n"],a:0},
+{q:"Hydration of an alkene produces:",o:["Alcohol","Alkane","Ketone","Acid"],a:0},
+{q:"Structural isomerism means:",o:["Same formula different structure","Same structure different formula","Different formula same structure","Same mass different atoms"],a:0},
+{q:"General formula for alkenes:",o:["CnH2n","CnH2n+2","CnH2n-2","CnH3n"],a:0},
+{q:"Which process breaks long hydrocarbon chains into smaller ones?",o:["Cracking","Polymerisation","Hydration","Neutralisation"],a:0},
+{q:"Hydration of an alkene produces:",o:["Alcohol","Alkane","Ketone","Acid"],a:0},
+{q:"Which type of cracking uses a catalyst?",o:["Thermal cracking","Catalytic cracking","Steam cracking","Natural cracking"],a:1},
+{q:"Which petroleum fraction is mainly used as fuel for cars?",o:["Bitumen","Gasoline","Lubricating oil","Refinery gas"],a:1},
+{q:"Lubricating oil is mainly used for:",o:["Road surfacing","Reducing friction in engines","Cooking fuel","Plastic manufacture"],a:1},
+{q:"Which process breaks long hydrocarbon chains into smaller ones?",o:["Cracking","Polymerisation","Hydration","Neutralisation"],a:0},
+{q:"General formula for alkanes:",o:["CnH2n","CnH2n+2","CnH2n-2","CnHn"],a:1},
+{q:"General formula for alkenes:",o:["CnH2n","CnH2n+2","CnH2n-2","CnH3n"],a:0},
+{q:"Petroleum is separated into fractions using:",o:["Crystallisation","Filtration","Fractional distillation","Evaporation"],a:2},
+{q:"Which type of cracking uses a catalyst?",o:["Thermal cracking","Catalytic cracking","Steam cracking","Natural cracking"],a:1},
+{q:"Carbon atoms normally form how many bonds?",o:["2","3","4","6"],a:2},
+{q:"Reaction most common for alkanes:",o:["Addition","Substitution","Neutralisation","Hydration"],a:1},
+{q:"Which type of cracking uses a catalyst?",o:["Thermal cracking","Catalytic cracking","Steam cracking","Natural cracking"],a:1},
+{q:"Natural gas mainly contains:",o:["Methane","Propane","Butane","Ethane"],a:0},
+{q:"Which type of cracking uses a catalyst?",o:["Thermal cracking","Catalytic cracking","Steam cracking","Natural cracking"],a:1},
+{q:"Structural isomerism means:",o:["Same formula different structure","Same structure different formula","Different formula same structure","Same mass different atoms"],a:0},
+{q:"Which compound belongs to the alcohol homologous series?",o:["CH3COOH","C2H4","C2H5OH","C3H8"],a:2},
+{q:"Lubricating oil is mainly used for:",o:["Road surfacing","Reducing friction in engines","Cooking fuel","Plastic manufacture"],a:1},
+{q:"Natural gas mainly contains:",o:["Methane","Propane","Butane","Ethane"],a:0},
 
-{
-q:"What type of bond forms when electrons are shared?",
-options:["Ionic bond","Covalent bond","Metallic bond"],
-answer:1
-},
-
-{
-q:"What is the pH of pure water?",
-options:["7","1","14"],
-answer:0
-},
-
-{
-q:"What gas do plants use in photosynthesis?",
-options:["Oxygen","Carbon dioxide","Nitrogen"],
-answer:1
-}
+{q:"Name the alkane shown below: C-C-C",o:["Propane","Butane","Pentane","Hexane","Heptane","Octane"],a:0},
+{q:"Name the alkane shown below: C-C-C-C-C",o:["Propane","Butane","Pentane","Hexane","Heptane","Octane"],a:2},
+{q:"Name the alkane shown below: C-C-C-C",o:["Propane","Butane","Pentane","Hexane","Heptane","Octane"],a:1},
+{q:"Name the alkane shown below: C-C-C-C-C",o:["Propane","Butane","Pentane","Hexane","Heptane","Octane"],a:2},
+{q:"Name the alkane shown below: C-C-C-C-C",o:["Propane","Butane","Pentane","Hexane","Heptane","Octane"],a:2},
+{q:"Name the alkane shown below: C-C-C-C",o:["Propane","Butane","Pentane","Hexane","Heptane","Octane"],a:1},
+{q:"Name the alkane shown below: C-C-C",o:["Propane","Butane","Pentane","Hexane","Heptane","Octane"],a:0},
+{q:"Name the alkane shown below: C-C-C-C-C-C",o:["Propane","Butane","Pentane","Hexane","Heptane","Octane"],a:3},
+{q:"Name the alkane shown below: C-C-C-C-C-C",o:["Propane","Butane","Pentane","Hexane","Heptane","Octane"],a:3},
+{q:"Name the alkane shown below: C-C-C-C",o:["Propane","Butane","Pentane","Hexane","Heptane","Octane"],a:1}
 
 ]
 
@@ -183,20 +171,18 @@ let current=0
 let selected=null
 let ml=0
 
-/* LOAD QUESTION */
-
 function loadQuestion(){
 
 selected=null
 
 let q=questions[current]
 
-document.getElementById("question").innerText=q.q
+document.getElementById("question").innerText="Q"+(current+1)+". "+q.q
 
-let container=document.getElementById("options")
-container.innerHTML=""
+let box=document.getElementById("options")
+box.innerHTML=""
 
-q.options.forEach((opt,i)=>{
+q.o.forEach((opt,i)=>{
 
 let btn=document.createElement("button")
 btn.className="option"
@@ -205,20 +191,16 @@ btn.innerText=opt
 btn.onclick=function(){
 
 document.querySelectorAll(".option").forEach(b=>b.style.border="none")
-
 btn.style.border="4px solid black"
-
 selected=i
 
 }
 
-container.appendChild(btn)
+box.appendChild(btn)
 
 })
 
 }
-
-/* CHECK ANSWER */
 
 function checkAnswer(){
 
@@ -228,11 +210,11 @@ let q=questions[current]
 
 let buttons=document.querySelectorAll(".option")
 
-buttons[q.answer].classList.add("correct")
+buttons[q.a].classList.add("correct")
 
-if(selected!==q.answer){
+if(selected!==q.a){
 
-buttons[selected].classList.add("incorrect")
+buttons[selected].classList.add("wrong")
 
 }else{
 
@@ -242,49 +224,35 @@ addLiquid()
 
 }
 
-/* SHOW ANSWER */
-
 function showAnswer(){
 
 let q=questions[current]
-
 let buttons=document.querySelectorAll(".option")
-
-buttons[q.answer].classList.add("correct")
+buttons[q.a].classList.add("correct")
 
 }
-
-/* NEXT QUESTION */
 
 function nextQuestion(){
 
 current++
 
-if(current>=questions.length){
-current=0
-}
+if(current>=questions.length) current=0
 
 loadQuestion()
 
 }
 
-/* BEAKER FILL */
-
 function addLiquid(){
 
 ml+=10
-
 if(ml>400) ml=400
 
 let percent=(ml/400)*100
 
 document.getElementById("liquid").style.height=percent+"%"
-
-document.getElementById("mlLabel").innerText=ml+" mL"
+document.getElementById("ml").innerText=ml+" mL"
 
 }
-
-/* START */
 
 loadQuestion()
 

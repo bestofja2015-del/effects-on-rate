@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Organic Chemistry Quiz</title>
+
+<style>
+
+body{
+font-family:Arial;
+background:#f5f5ff;
+padding:20px;
+}
+
+h1{
+text-align:center;
+}
+
+#quizBox{
+max-width:900px;
+margin:auto;
+background:white;
+padding:20px;
+border-radius:10px;
+box-shadow:0 0 10px rgba(0,0,0,0.2);
+}
+
+.question{
+margin-bottom:25px;
+}
+
+svg{
+margin-top:10px;
+margin-bottom:10px;
+}
+
+button{
+padding:10px 20px;
+font-size:16px;
+}
+
+</style>
+</head>
+
+
+<body>
+
+<h1>Organic Chemistry MCQ Test</h1>
+
+<div id="quizBox"></div>
+
+<button onclick="submitQuiz()">Submit Quiz</button>
+
+<h2 id="result"></h2>
+
+
+<script>
+
+/* ---------- DRAW ORGANIC STRUCTURES ---------- */
+
+function drawAlkane(carbons){
+
+let svg='<svg width="'+(carbons*70)+'" height="120">'
+
+for(let i=0;i<carbons;i++){
+
+let x=50+i*60
+let y=60
+
+svg+='<circle cx="'+x+'" cy="'+y+'" r="12" fill="black"/>'
+svg+='<text x="'+(x-4)+'" y="'+(y+4)+'" fill="white">C</text>'
+
+if(i>0){
+svg+='<line x1="'+(x-48)+'" y1="'+y+'" x2="'+(x-12)+'" y2="'+y+'" stroke="black" stroke-width="3"/>'
+}
+
+}
+
+svg+='</svg>'
+
+return svg
+
+}
+
+
+/* ---------- QUESTION BANK ---------- */
+
+const questions=[
+
+{
+q:"Natural gas mainly contains:",
+options:["Methane","Propane","Butane","Ethane"],
+answer:0
+},
+
+{
+q:"Petroleum is separated into fractions using:",
+options:["Crystallisation","Filtration","Fractional distillation","Evaporation"],
+answer:2
+},
+
+{
+q:"Which petroleum fraction is mainly used as fuel for cars?",
+options:["Bitumen","Gasoline","Lubricating oil","Refinery gas"],
+answer:1
+},
+
+{
+q:"Lubricating oil is mainly used for:",
+options:["Road surfacing","Reducing friction in engines","Cooking fuel","Plastic manufacture"],
+answer:1
+},
+
+{
+q:"Which process breaks long hydrocarbon chains into smaller ones?",
+options:["Cracking","Polymerisation","Hydration","Neutralisation"],
+answer:0
+},
+
+{
+q:"Which type of cracking uses a catalyst?",
+options:["Thermal cracking","Catalytic cracking","Steam cracking","Natural cracking"],
+answer:1
+},
+
+{
+q:"Carbon atoms normally form how many bonds?",
+options:["2","3","4","6"],
+answer:2
+},
+
+{
+q:"Which compound belongs to the alcohol homologous series?",
+options:["CH3COOH","C2H4","C2H5OH","C3H8"],
+answer:2
+},
+
+{
+q:"General formula for alkanes:",
+options:["CnH2n","CnH2n+2","CnH2n-2","CnHn"],
+answer:1
+},
+
+{
+q:"General formula for alkenes:",
+options:["CnH2n","CnH2n+2","CnH2n-2","CnH3n"],
+answer:0
+},
+
+{
+q:"Compounds in the same homologous series have:",
+options:["Same functional group","Same colour","Same density","Same boiling point"],
+answer:0
+},
+
+{
+q:"Structural isomerism means:",
+options:["Same formula different structure","Same structure different formula","Different formula same structure","Same mass different atoms"],
+answer:0
+},
+
+{
+q:"Reaction most common for alkanes:",
+options:["Addition","Substitution","Neutralisation","Hydration"],
+answer:1
+},
+
+{
+q:"Reaction typical for alkenes:",
+options:["Addition","Substitution","Precipitation","Condensation"],
+answer:0
+},
+
+{
+q:"Hydrogenation of alkenes produces:",
+options:["Alcohol","Alkane","Acid","Ester"],
+answer:1
+},
+
+{
+q:"Hydration of an alkene produces:",
+options:["Alcohol","Alkane","Ketone","Acid"],
+answer:0
+}
+
+]
+
+
+/* ---------- GENERATED STRUCTURE QUESTIONS ---------- */
+
+function structureQuestion(){
+
+let carbons=Math.floor(Math.random()*4)+3
+let names=["Propane","Butane","Pentane","Hexane","Heptane","Octane"]
+
+return{
+
+q:"Name the alkane shown below:",
+image:drawAlkane(carbons),
+options:names,
+answer:carbons-3
+
+}
+
+}
+
+
+/* ---------- BUILD QUIZ ---------- */
+
+let quiz=[]
+for(let i=0;i<30;i++){
+
+quiz.push(questions[Math.floor(Math.random()*questions.length)])
+
+}
+
+for(let i=0;i<10;i++){
+
+quiz.push(structureQuestion())
+
+}
+
+
+function loadQuiz(){
+
+let html=""
+
+quiz.forEach((q,i)=>{
+
+html+='<div class="question">'
+html+="<b>Q"+(i+1)+". "+q.q+"</b>"
+
+if(q.image){
+html+=q.image
+}
+
+q.options.forEach((opt,j)=>{
+
+html+='<br><input type="radio" name="q'+i+'" value="'+j+'">'+opt
+
+})
+
+html+='</div>'
+
+})
+
+document.getElementById("quizBox").innerHTML=html
+
+}
+
+
+loadQuiz()
+
+
+/* ---------- MARKING ---------- */
+
+function submitQuiz(){
+
+let score=0
+
+quiz.forEach((q,i)=>{
+
+let selected=document.querySelector('input[name="q'+i+'"]:checked')
+
+if(selected && selected.value==q.answer){
+score++
+}
+
+})
+
+document.getElementById("result").innerText="Score: "+score+" / 40"
+
+}
+
+</script>
+
+</body>
+</html>
